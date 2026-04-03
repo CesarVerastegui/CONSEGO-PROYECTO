@@ -1,0 +1,39 @@
+@model SolicitudAcceso
+@{
+    ViewData["Title"] = "Nueva Solicitud de Acceso";
+}
+
+<h3>Nueva Solicitud de Acceso</h3>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="PlataformaId" class="form-label"></label>
+                <select asp-for="PlataformaId" asp-items="@ViewBag.Plataformas" class="form-select">
+                    <option value="">-- Seleccione Plataforma --</option>
+                </select>
+                <span asp-validation-for="PlataformaId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TipoAcceso" class="form-label"></label>
+                <select asp-for="TipoAcceso" asp-items="Html.GetEnumSelectList<TipoAcceso>()" class="form-select">
+                    <option value="">-- Seleccione --</option>
+                </select>
+                <span asp-validation-for="TipoAcceso" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Justificacion" class="form-label"></label>
+                <textarea asp-for="Justificacion" class="form-control" rows="4" placeholder="Explique por qué necesita este acceso..."></textarea>
+                <span asp-validation-for="Justificacion" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Enviar Solicitud</button>
+            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>

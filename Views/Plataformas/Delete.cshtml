@@ -1,0 +1,32 @@
+@model Plataforma
+@{
+    ViewData["Title"] = "Eliminar Plataforma";
+}
+
+<h3>¿Eliminar esta plataforma?</h3>
+
+<div class="card col-md-6">
+    <div class="card-body">
+        <p><strong>Nombre:</strong> @Model.Nombre</p>
+        <p><strong>Tipo:</strong> @Model.Tipo</p>
+        <p><strong>Criticidad:</strong> @Model.Criticidad</p>
+        <p><strong>Solicitudes asociadas:</strong> @Model.Solicitudes.Count</p>
+
+        @if (Model.Solicitudes.Any())
+        {
+            <div class="alert alert-warning">
+                No se puede eliminar esta plataforma porque tiene solicitudes asociadas.
+            </div>
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+        }
+        else
+        {
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </form>
+        }
+    </div>
+</div>

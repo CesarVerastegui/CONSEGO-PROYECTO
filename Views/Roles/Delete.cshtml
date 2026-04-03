@@ -1,0 +1,31 @@
+@model Rol
+@{
+    ViewData["Title"] = "Eliminar Rol";
+}
+
+<h3>¿Eliminar este rol?</h3>
+
+<div class="card col-md-6">
+    <div class="card-body">
+        <p><strong>Nombre:</strong> @Model.Nombre</p>
+        <p><strong>Descripción:</strong> @Model.Descripcion</p>
+        <p><strong>Usuarios asignados:</strong> @Model.Usuarios.Count</p>
+
+        @if (Model.Usuarios.Any())
+        {
+            <div class="alert alert-warning">
+                No se puede eliminar este rol porque tiene usuarios asignados.
+            </div>
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+        }
+        else
+        {
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </form>
+        }
+    </div>
+</div>

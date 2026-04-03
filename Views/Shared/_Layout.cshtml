@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - IDM Technology</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                <strong>IDM</strong> AccessControl
+            </a>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Solicitudes" asp-action="Index">Solicitudes</a>
+                        </li>
+                        @if (User.IsInRole("Solicitante") || User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Solicitudes" asp-action="Create">Nueva Solicitud</a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    Administración
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="Roles" asp-action="Index">Roles</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Usuarios" asp-action="Index">Usuarios</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Plataformas" asp-action="Index">Plataformas</a></li>
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <span class="nav-link text-light">
+                                @User.Identity?.Name
+                                <span class="badge bg-info ms-1">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-light btn-sm mt-1">Cerrar Sesión</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            }
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show">
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @RenderBody()
+    </div>
+
+    <footer class="container mt-5 mb-3 text-center text-muted">
+        <hr />
+        <p>&copy; @DateTime.Now.Year - IDM Technology - Sistema de Gestión de Accesos</p>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

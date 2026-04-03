@@ -1,0 +1,55 @@
+@model IEnumerable<Plataforma>
+@{
+    ViewData["Title"] = "Plataformas";
+}
+
+<h3>Plataformas</h3>
+<a asp-action="Create" class="btn btn-primary mb-3">Nueva Plataforma</a>
+
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Criticidad</th>
+            <th>Activa</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.Id</td>
+                <td>@p.Nombre</td>
+                <td><span class="badge bg-info">@p.Tipo</span></td>
+                <td>
+                    @{
+                        var badgeClass = p.Criticidad switch
+                        {
+                            Criticidad.Alta => "bg-danger",
+                            Criticidad.Media => "bg-warning text-dark",
+                            _ => "bg-success"
+                        };
+                    }
+                    <span class="badge @badgeClass">@p.Criticidad</span>
+                </td>
+                <td>
+                    @if (p.Activa)
+                    {
+                        <span class="badge bg-success">Sí</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">No</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-warning">Editar</a>
+                    <a asp-action="Delete" asp-route-id="@p.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

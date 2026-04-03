@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+<div class="text-center mt-4">
+    <h2>Bienvenido al Sistema de Gestión de Accesos</h2>
+    <p class="lead text-muted">IDM Technology — Control de solicitudes de acceso a plataformas tecnológicas</p>
+    <hr />
+</div>
+
+<div class="row mt-4">
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="col-md-3">
+            <div class="card text-center border-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Roles</h5>
+                    <p class="card-text">Gestionar roles del sistema</p>
+                    <a asp-controller="Roles" asp-action="Index" class="btn btn-outline-primary">Ir</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Usuarios</h5>
+                    <p class="card-text">Gestionar usuarios</p>
+                    <a asp-controller="Usuarios" asp-action="Index" class="btn btn-outline-primary">Ir</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Plataformas</h5>
+                    <p class="card-text">Catálogo de plataformas</p>
+                    <a asp-controller="Plataformas" asp-action="Index" class="btn btn-outline-primary">Ir</a>
+                </div>
+            </div>
+        </div>
+    }
+    <div class="col-md-3">
+        <div class="card text-center border-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Solicitudes</h5>
+                <p class="card-text">Ver solicitudes de acceso</p>
+                <a asp-controller="Solicitudes" asp-action="Index" class="btn btn-outline-success">Ir</a>
+            </div>
+        </div>
+    </div>
+</div>

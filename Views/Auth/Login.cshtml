@@ -1,0 +1,41 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white text-center">
+                <h4 class="mb-0">IDM AccessControl</h4>
+                <small>Gestión de Solicitudes de Acceso</small>
+            </div>
+            <div class="card-body">
+                <form asp-action="Login" method="post">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" autofocus />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label"></label>
+                        <input asp-for="Password" class="form-control" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+                </form>
+            </div>
+            <div class="card-footer text-muted small">
+                <strong>Credenciales demo:</strong><br />
+                Admin: admin@@idmtechnology.pe / Demo123!<br />
+                Analista: analista@@idmtechnology.pe / Demo123!<br />
+                Solicitante: solicitante@@idmtechnology.pe / Demo123!
+            </div>
+        </div>
+    </div>
+</div>

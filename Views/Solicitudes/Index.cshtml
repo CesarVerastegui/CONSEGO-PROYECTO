@@ -1,0 +1,138 @@
+@model SolicitudFiltroViewModel
+@{
+    ViewData["Title"] = "Solicitudes de Acceso";
+}
+
+<h3>Solicitudes de Acceso</h3>
+
+@if (User.IsInRole("Solicitante") || User.IsInRole("Admin"))
+{
+    <a asp-action="Create" class="btn btn-primary mb-3">Nueva Solicitud</a>
+}
+
+<!-- Filtros -->
+<div class="card mb-3">
+    <div class="card-header">Filtros</div>
+    <div class="card-body">
+        <form method="get" asp-action="Index">
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <label asp-for="Estado" class="form-label"></label>
+                    <select asp-for="Estado" asp-items="Html.GetEnumSelectList<EstadoSolicitud>()" class="form-select">
+                        <option value="">-- Todos --</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="PlataformaId" class="form-label">Plataforma</label>
+                    <select asp-for="PlataformaId" class="form-select">
+                        <option value="">-- Todas --</option>
+                        @foreach (var p in Model.PlataformasDisponibles)
+                        {
+                            <option value="@p.Id" selected="@(Model.PlataformaId == p.Id)">@p.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="FechaDesde" class="form-label"></label>
+                    <input asp-for="FechaDesde" class="form-control" type="date" />
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="FechaHasta" class="form-label"></label>
+                    <input asp-for="FechaHasta" class="form-control" type="date" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-primary w-100">Filtrar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de solicitudes -->
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>Código</th>
+            <th>Fecha</th>
+            <th>Solicitante</th>
+            <th>Plataforma</th>
+            <th>Tipo Acceso</th>
+            <th>Estado</th>
+            <th>Analista</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Solicitudes.Any())
+        {
+            <tr><td colspan="8" class="text-center text-muted">No se encontraron solicitudes.</td></tr>
+        }
+        @foreach (var s in Model.Solicitudes)
+        {
+            var estadoBadge = s.Estado switch
+            {
+                EstadoSolicitud.Registrado => "bg-secondary",
+                EstadoSolicitud.EnAnalisis => "bg-primary",
+                EstadoSolicitud.Aprobado => "bg-success",
+                EstadoSolicitud.Rechazado => "bg-danger",
+                EstadoSolicitud.Implementado => "bg-info",
+                _ => "bg-secondary"
+            };
+            <tr>
+                <td><strong>@s.Codigo</strong></td>
+                <td>@s.FechaSolicitud.ToString("dd/MM/yyyy")</td>
+                <td>@s.UsuarioSolicitante?.Nombre</td>
+                <td>@s.Plataforma?.Nombre</td>
+                <td>@s.TipoAcceso</td>
+                <td><span class="badge @estadoBadge">@s.Estado</span></td>
+                <td>@(s.Analista?.Nombre ?? "—")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@s.Id" class="btn btn-sm btn-outline-primary">Ver</a>
+
+                    @if ((User.IsInRole("AnalistaSeguridad") || User.IsInRole("Admin")) && s.Estado == EstadoSolicitud.Registrado)
+                    {
+                        <form asp-action="Tomar" asp-route-id="@s.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-warning">Tomar</button>
+                        </form>
+                    }
+
+                    @if ((User.IsInRole("AnalistaSeguridad") || User.IsInRole("Admin")) && s.Estado == EstadoSolicitud.EnAnalisis)
+                    {
+                        <a asp-action="Resolver" asp-route-id="@s.Id" class="btn btn-sm btn-success">Resolver</a>
+                    }
+
+                    @if ((User.IsInRole("Infra") || User.IsInRole("Admin")) && s.Estado == EstadoSolicitud.Aprobado)
+                    {
+                        <form asp-action="Implementar" asp-route-id="@s.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-info">Implementar</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Paginación -->
+@if (Model.TotalPaginas > 1)
+{
+    <nav>
+        <ul class="pagination justify-content-center">
+            @for (int i = 1; i <= Model.TotalPaginas; i++)
+            {
+                <li class="page-item @(i == Model.Pagina ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-Pagina="@i"
+                       asp-route-Estado="@Model.Estado"
+                       asp-route-PlataformaId="@Model.PlataformaId"
+                       asp-route-FechaDesde="@Model.FechaDesde?.ToString("yyyy-MM-dd")"
+                       asp-route-FechaHasta="@Model.FechaHasta?.ToString("yyyy-MM-dd")">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+<p class="text-muted text-center">Total: @Model.TotalRegistros solicitudes</p>
