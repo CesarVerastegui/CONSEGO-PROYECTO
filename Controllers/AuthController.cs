@@ -34,22 +34,31 @@ namespace CONSEGO.Controllers
                 return View(model);
 
             var hash = AppDbContext.HashPassword(model.Password);
+
+            // Incluir Rol para poder acceder a usuario.Rol.Nombre
             var usuario = await _context.Usuarios
                 .Include(u => u.Rol)
                 .FirstOrDefaultAsync(u => u.Email == model.Email && u.PasswordHash == hash && u.Activo);
 
             if (usuario == null)
             {
-                ModelState.AddModelError("", "Email o contraseña incorrectos, o usuario inactivo.");
+                ModelState.AddModelError("", "Email o contraseña incorrectos, o usuario bloqueado.");
+                return View(model);
+            }
+
+            // Verificar que el Rol no sea nulo
+            if (usuario.Rol == null)
+            {
+                ModelState.AddModelError("", "El usuario no tiene un rol asignado válido.");
                 return View(model);
             }
 
             var claims = new List<Claim>
             {
-                new(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-                new(ClaimTypes.Name, usuario.Nombre),
-                new(ClaimTypes.Email, usuario.Email),
-                new(ClaimTypes.Role, usuario.Rol!.Nombre)
+                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+                new Claim(ClaimTypes.Name, usuario.Nombre),
+                new Claim(ClaimTypes.Email, usuario.Email),
+                new Claim(ClaimTypes.Role, usuario.Rol.Nombre)
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

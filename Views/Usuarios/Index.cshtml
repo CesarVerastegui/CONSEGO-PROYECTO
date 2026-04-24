@@ -13,7 +13,7 @@
             <th>Nombre</th>
             <th>Email</th>
             <th>Rol</th>
-            <th>Activo</th>
+            <th>Estado</th>
             <th>Fecha Creación</th>
             <th>Acciones</th>
         </tr>
@@ -29,19 +29,46 @@
                 <td>
                     @if (u.Activo)
                     {
-                        <span class="badge bg-success">Sí</span>
+                        <span class="badge bg-success">Activo</span>
                     }
                     else
                     {
-                        <span class="badge bg-danger">No</span>
+                        <span class="badge bg-danger">Bloqueado</span>
                     }
                 </td>
                 <td>@u.FechaCreacion.ToString("dd/MM/yyyy")</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-warning">Editar</a>
-                    <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline delete-form" data-name="@u.Nombre">
+                    <!-- Boton Editar con lapiz -->
+                    <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+
+                    <!-- Boton Bloquear/Activar -->
+                    @if (u.Activo)
+                    {
+                        <form asp-action="ToggleStatus" asp-route-id="@u.Id" method="post" class="d-inline toggle-form" data-nombre="@u.Nombre" data-estado="bloquear">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger toggle-btn" title="Bloquear">
+                                <i class="bi bi-lock"></i>
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="ToggleStatus" asp-route-id="@u.Id" method="post" class="d-inline toggle-form" data-nombre="@u.Nombre" data-estado="activar">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-success toggle-btn" title="Activar">
+                                <i class="bi bi-unlock"></i>
+                            </button>
+                        </form>
+                    }
+
+                    <!-- Boton Eliminar TEMPORAL (para pruebas) -->
+                    <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline delete-form" data-nombre="@u.Nombre">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-sm btn-danger delete-btn">Eliminar</button>
+                        <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                        </button>
                     </form>
                 </td>
             </tr>
@@ -51,21 +78,58 @@
 
 @section Scripts {
     <script>
+        // Confirmar Bloquear/Activar usuario
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                const nombre = form.getAttribute('data-nombre');
+                const estado = form.getAttribute('data-estado');
+
+                const titulo = estado === 'bloquear' ? '¿Bloquear usuario?' : '¿Activar usuario?';
+                const texto = estado === 'bloquear'
+                    ? 'El usuario <strong>' + nombre + '</strong> no podra iniciar sesion.'
+                    : 'El usuario <strong>' + nombre + '</strong> podra acceder nuevamente.';
+                const icono = estado === 'bloquear' ? 'warning' : 'question';
+                const botonColor = estado === 'bloquear' ? '#dc3545' : '#198754';
+                const botonTexto = estado === 'bloquear' ? 'Si, bloquear' : 'Si, activar';
+
+                Swal.fire({
+                    title: titulo,
+                    html: texto,
+                    icon: icono,
+                    showCancelButton: true,
+                    confirmButtonColor: botonColor,
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: botonTexto,
+                    cancelButtonText: 'Cancelar'
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        // Confirmar Eliminar TEMPORAL (para pruebas)
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const form = this.closest('form');
-                const name = form.getAttribute('data-name');
+                const nombre = form.getAttribute('data-nombre');
+
                 Swal.fire({
                     title: '¿Eliminar usuario?',
-                    html: `El usuario <strong>${name}</strong> se eliminará permanentemente.`,
+                    html: 'El usuario <strong>' + nombre + '</strong> se eliminara permanentemente.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc3545',
-                    confirmButtonText: 'Sí, eliminar',
+                    confirmButtonText: 'Si, eliminar',
                     cancelButtonText: 'Cancelar'
                 }).then(result => {
-                    if (result.isConfirmed) form.submit();
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
                 });
             });
         });

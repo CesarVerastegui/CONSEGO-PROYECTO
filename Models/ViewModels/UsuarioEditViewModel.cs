@@ -26,7 +26,5 @@ namespace CONSEGO.Models.ViewModels
         [Display(Name = "Rol")]
         public int RolId { get; set; }
 
-        [Display(Name = "Activo")]
-        public bool Activo { get; set; }
     }
 }

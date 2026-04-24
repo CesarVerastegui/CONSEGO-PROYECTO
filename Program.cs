@@ -1,6 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using CONSEGO.Data;
+using CONSEGO.Filters;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
     });
 
-builder.Services.AddControllersWithViews();
+// Agregar controladores con el filtro global
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<UsuarioActivoFilter>();
+});
+
+builder.Services.AddScoped<UsuarioActivoFilter>();
 
 var app = builder.Build();
 

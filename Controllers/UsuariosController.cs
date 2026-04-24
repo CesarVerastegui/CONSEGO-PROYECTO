@@ -53,7 +53,7 @@ namespace CONSEGO.Controllers
                 Email = model.Email,
                 PasswordHash = AppDbContext.HashPassword(model.Password),
                 RolId = model.RolId,
-                Activo = model.Activo,
+                Activo = true,
                 FechaCreacion = DateTime.Now
             };
 
@@ -73,8 +73,7 @@ namespace CONSEGO.Controllers
                 Id = usuario.Id,
                 Nombre = usuario.Nombre,
                 Email = usuario.Email,
-                RolId = usuario.RolId,
-                Activo = usuario.Activo
+                RolId = usuario.RolId
             };
 
             ViewBag.Roles = new SelectList(await _context.Roles.ToListAsync(), "Id", "Nombre", model.RolId);
@@ -106,7 +105,6 @@ namespace CONSEGO.Controllers
             usuario.Nombre = model.Nombre;
             usuario.Email = model.Email;
             usuario.RolId = model.RolId;
-            usuario.Activo = model.Activo;
 
             if (!string.IsNullOrWhiteSpace(model.Password))
                 usuario.PasswordHash = AppDbContext.HashPassword(model.Password);
@@ -117,16 +115,24 @@ namespace CONSEGO.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Delete(int id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleStatus(int id)
         {
-            var usuario = await _context.Usuarios.Include(u => u.Rol).FirstOrDefaultAsync(u => u.Id == id);
+            var usuario = await _context.Usuarios.FindAsync(id);
             if (usuario == null) return NotFound();
-            return View(usuario);
+
+            usuario.Activo = !usuario.Activo;
+            await _context.SaveChangesAsync();
+
+            var estado = usuario.Activo ? "activado" : "bloqueado";
+            TempData["Success"] = $"Usuario {usuario.Nombre} {estado} correctamente.";
+            return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var usuario = await _context.Usuarios.FindAsync(id);
             if (usuario == null) return NotFound();
@@ -142,7 +148,7 @@ namespace CONSEGO.Controllers
 
             _context.Usuarios.Remove(usuario);
             await _context.SaveChangesAsync();
-            TempData["Success"] = "Usuario eliminado exitosamente.";
+            TempData["Success"] = $"Usuario {usuario.Nombre} eliminado correctamente.";
             return RedirectToAction(nameof(Index));
         }
     }

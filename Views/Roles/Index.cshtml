@@ -23,10 +23,17 @@
                 <td>@rol.Nombre</td>
                 <td>@rol.Descripcion</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@rol.Id" class="btn btn-sm btn-warning">Editar</a>
+                    <!-- Botón Editar con lápiz azul -->
+                    <a asp-action="Edit" asp-route-id="@rol.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+
+                    <!-- Botón Eliminar con basurero rojo -->
                     <form asp-action="Delete" asp-route-id="@rol.Id" method="post" class="d-inline delete-form" data-name="@rol.Nombre">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-sm btn-danger delete-btn">Eliminar</button>
+                        <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                        </button>
                     </form>
                 </td>
             </tr>
