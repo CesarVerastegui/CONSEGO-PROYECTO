@@ -1,51 +1,152 @@
+@model DashboardViewModel
 @{
-    ViewData["Title"] = "Inicio";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center mt-4">
-    <h2>Bienvenido al Sistema de Gestión de Accesos</h2>
-    <p class="lead text-muted">IDM Technology — Control de solicitudes de acceso a plataformas tecnológicas</p>
-    <hr />
+<div class="mb-4">
+    <h2 class="display-6">Dashboard</h2>
+    <p class="text-muted">Bienvenido al Sistema de Gestión de Accesos - IDM Technology</p>
 </div>
 
-<div class="row mt-4">
-    @if (User.IsInRole("Admin"))
-    {
-        <div class="col-md-3">
-            <div class="card text-center border-primary mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Roles</h5>
-                    <p class="card-text">Gestionar roles del sistema</p>
-                    <a asp-controller="Roles" asp-action="Index" class="btn btn-outline-primary">Ir</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center border-primary mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Usuarios</h5>
-                    <p class="card-text">Gestionar usuarios</p>
-                    <a asp-controller="Usuarios" asp-action="Index" class="btn btn-outline-primary">Ir</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center border-primary mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Plataformas</h5>
-                    <p class="card-text">Catálogo de plataformas</p>
-                    <a asp-controller="Plataformas" asp-action="Index" class="btn btn-outline-primary">Ir</a>
-                </div>
-            </div>
-        </div>
-    }
+<!-- Fila 1: Solicitudes -->
+<div class="row g-4 mb-4">
     <div class="col-md-3">
-        <div class="card text-center border-success mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Solicitudes</h5>
-                <p class="card-text">Ver solicitudes de acceso</p>
-                <a asp-controller="Solicitudes" asp-action="Index" class="btn btn-outline-success">Ir</a>
+        <div class="card border shadow-sm h-100" style="border-radius: 1rem;">
+            <div class="card-body text-center">
+                <i class="bi bi-files fs-1 text-primary"></i>
+                <h2 class="mt-2 mb-0">@Model.TotalSolicitudes</h2>
+                <p class="text-muted">Total Solicitudes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border shadow-sm h-100" style="border-radius: 1rem;">
+            <div class="card-body text-center">
+                <i class="bi bi-hourglass-split fs-1 text-warning"></i>
+                <h2 class="mt-2 mb-0">@Model.SolicitudesPendientes</h2>
+                <p class="text-muted">Pendientes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border shadow-sm h-100" style="border-radius: 1rem;">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle fs-1 text-success"></i>
+                <h2 class="mt-2 mb-0">@Model.SolicitudesAprobadas</h2>
+                <p class="text-muted">Aprobadas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border shadow-sm h-100" style="border-radius: 1rem;">
+            <div class="card-body text-center">
+                <i class="bi bi-check2-all fs-1 text-info"></i>
+                <h2 class="mt-2 mb-0">@Model.SolicitudesImplementadas</h2>
+                <p class="text-muted">Implementadas</p>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Fila 2: Recursos -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border shadow-sm h-100" style="border-radius: 1rem;">
+            <div class="card-body text-center">
+                <i class="bi bi-cloud fs-1 text-secondary"></i>
+                <h2 class="mt-2 mb-0">@Model.TotalPlataformasActivas</h2>
+                <p class="text-muted">Plataformas Activas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border shadow-sm h-100" style="border-radius: 1rem;">
+            <div class="card-body text-center">
+                <i class="bi bi-people fs-1 text-secondary"></i>
+                <h2 class="mt-2 mb-0">@Model.TotalUsuariosActivos</h2>
+                <p class="text-muted">Usuarios Activos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border shadow-sm h-100" style="border-radius: 1rem;">
+            <div class="card-body text-center">
+                <i class="bi bi-x-circle fs-1 text-danger"></i>
+                <h2 class="mt-2 mb-0">@Model.SolicitudesRechazadas</h2>
+                <p class="text-muted">Rechazadas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border shadow-sm h-100" style="border-radius: 1rem;">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up fs-1 text-primary"></i>
+                <h2 class="mt-2 mb-0">
+                    @{
+                        var totalResueltas = Model.SolicitudesAprobadas + Model.SolicitudesImplementadas;
+                        var porcentaje = Model.TotalSolicitudes == 0 ? 0 : (totalResueltas * 100 / Model.TotalSolicitudes);
+                    }
+                    @porcentaje%
+                </h2>
+                <p class="text-muted">Tasa de Éxito</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fila 3: Accesos rápidos (solo para Admin) -->
+@if (User.IsInRole("Admin"))
+{
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-semibold">
+                    <i class="bi bi-lightning-charge me-2"></i>Accesos Rápidos
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a asp-controller="Solicitudes" asp-action="Index" class="btn btn-outline-primary">
+                            <i class="bi bi-clipboard-list me-1"></i> Ver Solicitudes
+                        </a>
+                        <a asp-controller="Usuarios" asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-people me-1"></i> Gestionar Usuarios
+                        </a>
+                        <a asp-controller="Plataformas" asp-action="Index" class="btn btn-outline-info">
+                            <i class="bi bi-cloud me-1"></i> Gestionar Plataformas
+                        </a>
+                        <a asp-controller="Roles" asp-action="Index" class="btn btn-outline-dark">
+                            <i class="bi bi-tags me-1"></i> Gestionar Roles
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Accesos rápidos para otros roles -->
+@if (!User.IsInRole("Admin"))
+{
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-semibold">
+                    <i class="bi bi-lightning-charge me-2"></i>Accesos Rápidos
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a asp-controller="Solicitudes" asp-action="Index" class="btn btn-outline-primary">
+                            <i class="bi bi-clipboard-list me-1"></i> Mis Solicitudes
+                        </a>
+                        @if (User.IsInRole("Solicitante"))
+                        {
+                            <a asp-controller="Solicitudes" asp-action="Create" class="btn btn-outline-success">
+                                <i class="bi bi-plus-circle me-1"></i> Nueva Solicitud
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
