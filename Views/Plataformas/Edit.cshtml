@@ -7,7 +7,7 @@
 
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="Edit" method="post">
+        <form id="editForm" asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
 
@@ -39,3 +39,22 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('editForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: '¿Actualizar plataforma?',
+                text: 'Los cambios se guardarán en el sistema.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd',
+                confirmButtonText: 'Sí, actualizar',
+                cancelButtonText: 'Cancelar'
+            }).then(result => {
+                if (result.isConfirmed) this.submit();
+            });
+        });
+    </script>
+}

@@ -51,9 +51,9 @@
 <div class="mt-3">
     @if ((User.IsInRole("AnalistaSeguridad") || User.IsInRole("Admin")) && Model.Estado == EstadoSolicitud.Registrado)
     {
-        <form asp-action="Tomar" asp-route-id="@Model.Id" method="post" class="d-inline">
+        <form asp-action="Tomar" asp-route-id="@Model.Id" method="post" class="d-inline" id="tomarForm">
             @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-warning">Tomar para Análisis</button>
+            <button type="submit" id="tomarBtn" class="btn btn-warning">Tomar para Análisis</button>
         </form>
     }
 
@@ -64,11 +64,50 @@
 
     @if ((User.IsInRole("Infra") || User.IsInRole("Admin")) && Model.Estado == EstadoSolicitud.Aprobado)
     {
-        <form asp-action="Implementar" asp-route-id="@Model.Id" method="post" class="d-inline">
+        <form asp-action="Implementar" asp-route-id="@Model.Id" method="post" class="d-inline" id="implementarForm">
             @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-info">Marcar Implementado</button>
+            <button type="submit" id="implementarBtn" class="btn btn-info">Marcar Implementado</button>
         </form>
     }
 
     <a asp-action="Index" class="btn btn-secondary">Volver al Listado</a>
 </div>
+
+@section Scripts {
+    <script>
+        const tomarForm = document.getElementById('tomarForm');
+        const tomarBtn = document.getElementById('tomarBtn');
+        const implementarForm = document.getElementById('implementarForm');
+        const implementarBtn = document.getElementById('implementarBtn');
+
+        tomarBtn?.addEventListener('click', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: '¿Tomar solicitud?',
+                text: 'Pasará a estado "En Análisis" y quedará asignada a usted.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                confirmButtonText: 'Sí, tomar',
+                cancelButtonText: 'Cancelar'
+            }).then(result => {
+                if (result.isConfirmed) tomarForm.submit();
+            });
+        });
+
+        implementarBtn?.addEventListener('click', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: '¿Marcar como implementada?',
+                text: 'Esta solicitud pasará a estado "Implementado".',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0dcaf0',
+                confirmButtonText: 'Sí, implementar',
+                cancelButtonText: 'Cancelar'
+            }).then(result => {
+                if (result.isConfirmed) implementarForm.submit();
+            });
+        });
+    </script>
+}

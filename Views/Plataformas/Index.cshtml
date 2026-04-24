@@ -47,9 +47,35 @@
                 </td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-warning">Editar</a>
-                    <a asp-action="Delete" asp-route-id="@p.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                    <form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline delete-form" data-name="@p.Nombre">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-danger delete-btn">Eliminar</button>
+                    </form>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                const name = form.getAttribute('data-name');
+                Swal.fire({
+                    title: '¿Eliminar plataforma?',
+                    html: `La plataforma <strong>${name}</strong> se eliminará permanentemente.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then(result => {
+                    if (result.isConfirmed) form.submit();
+                });
+            });
+        });
+    </script>
+}

@@ -7,7 +7,7 @@
 
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="Create" method="post">
+        <form id="createForm" asp-action="Create" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="mb-3">
@@ -37,3 +37,26 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('createForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                return;
+            }
+            Swal.fire({
+                title: '¿Enviar solicitud?',
+                text: 'La solicitud será registrada y enviada al área de seguridad.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd',
+                confirmButtonText: 'Sí, enviar',
+                cancelButtonText: 'Cancelar'
+            }).then(result => {
+                if (result.isConfirmed) this.submit();
+            });
+        });
+    </script>
+}

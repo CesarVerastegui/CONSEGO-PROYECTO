@@ -91,9 +91,9 @@
 
                     @if ((User.IsInRole("AnalistaSeguridad") || User.IsInRole("Admin")) && s.Estado == EstadoSolicitud.Registrado)
                     {
-                        <form asp-action="Tomar" asp-route-id="@s.Id" method="post" class="d-inline">
+                        <form asp-action="Tomar" asp-route-id="@s.Id" method="post" class="d-inline tomar-form" data-codigo="@s.Codigo">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-warning">Tomar</button>
+                            <button type="submit" class="btn btn-sm btn-warning tomar-btn">Tomar</button>
                         </form>
                     }
 
@@ -104,9 +104,9 @@
 
                     @if ((User.IsInRole("Infra") || User.IsInRole("Admin")) && s.Estado == EstadoSolicitud.Aprobado)
                     {
-                        <form asp-action="Implementar" asp-route-id="@s.Id" method="post" class="d-inline">
+                        <form asp-action="Implementar" asp-route-id="@s.Id" method="post" class="d-inline implementar-form" data-codigo="@s.Codigo">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-info">Implementar</button>
+                            <button type="submit" class="btn btn-sm btn-info implementar-btn">Implementar</button>
                         </form>
                     }
                 </td>
@@ -136,3 +136,47 @@
     </nav>
 }
 <p class="text-muted text-center">Total: @Model.TotalRegistros solicitudes</p>
+
+@section Scripts {
+    <script>
+        // Confirmar Tomar solicitud
+        document.querySelectorAll('.tomar-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                const codigo = form.getAttribute('data-codigo');
+                Swal.fire({
+                    title: '¿Tomar solicitud?',
+                    html: 'La solicitud <strong>' + codigo + '</strong> pasara a estado "En Analisis".',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ffc107',
+                    confirmButtonText: 'Si, tomar',
+                    cancelButtonText: 'Cancelar'
+                }).then(result => {
+                    if (result.isConfirmed) form.submit();
+                });
+            });
+        });
+
+        // Confirmar Implementar solicitud
+        document.querySelectorAll('.implementar-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                const codigo = form.getAttribute('data-codigo');
+                Swal.fire({
+                    title: '¿Marcar como implementada?',
+                    html: 'La solicitud <strong>' + codigo + '</strong> pasara a estado "Implementado".',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0dcaf0',
+                    confirmButtonText: 'Si, implementar',
+                    cancelButtonText: 'Cancelar'
+                }).then(result => {
+                    if (result.isConfirmed) form.submit();
+                });
+            });
+        });
+    </script>
+}
