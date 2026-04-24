@@ -7,6 +7,8 @@ using CONSEGO.Models;
 using CONSEGO.Models.Enums;
 using CONSEGO.Models.ViewModels;
 using System.Security.Claims;
+using ClosedXML.Excel;
+using System.Data;
 
 namespace CONSEGO.Controllers
 {
@@ -131,7 +133,7 @@ namespace CONSEGO.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: Solicitudes/Tomar/5 (Analista toma la solicitud ? EnAnalisis)
+        // POST: Solicitudes/Tomar/5 (Analista toma la solicitud -> EnAnalisis)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "AnalistaSeguridad,Admin")]
@@ -228,6 +230,85 @@ namespace CONSEGO.Controllers
 
             TempData["Success"] = $"Solicitud {solicitud.Codigo} marcada como implementada.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Exportar a Excel con los filtros actuales
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExportarExcel(SolicitudFiltroViewModel filtro)
+        {
+            // 1. Obtener los mismos datos filtrados que en Index
+            var query = _context.SolicitudesAcceso
+                .Include(s => s.UsuarioSolicitante)
+                .Include(s => s.Plataforma)
+                .Include(s => s.Analista)
+                .AsQueryable();
+
+            var rol = GetRol();
+            var userId = GetUsuarioId();
+
+            if (rol == "Solicitante")
+                query = query.Where(s => s.UsuarioSolicitanteId == userId);
+
+            if (rol == "Infra")
+                query = query.Where(s => s.Estado == EstadoSolicitud.Aprobado || s.Estado == EstadoSolicitud.Implementado);
+
+            if (filtro.Estado.HasValue)
+                query = query.Where(s => s.Estado == filtro.Estado.Value);
+            if (filtro.PlataformaId.HasValue)
+                query = query.Where(s => s.PlataformaId == filtro.PlataformaId.Value);
+            if (filtro.FechaDesde.HasValue)
+                query = query.Where(s => s.FechaSolicitud >= filtro.FechaDesde.Value);
+            if (filtro.FechaHasta.HasValue)
+                query = query.Where(s => s.FechaSolicitud <= filtro.FechaHasta.Value);
+
+            var solicitudes = await query
+                .OrderByDescending(s => s.FechaSolicitud)
+                .ToListAsync();
+
+            // 2. Crear DataTable con los datos
+            var dt = new DataTable("Solicitudes");
+            dt.Columns.Add("Código", typeof(string));
+            dt.Columns.Add("Fecha Solicitud", typeof(string));
+            dt.Columns.Add("Solicitante", typeof(string));
+            dt.Columns.Add("Plataforma", typeof(string));
+            dt.Columns.Add("Tipo Acceso", typeof(string));
+            dt.Columns.Add("Estado", typeof(string));
+            dt.Columns.Add("Analista", typeof(string));
+            dt.Columns.Add("Justificación", typeof(string));
+
+            foreach (var s in solicitudes)
+            {
+                dt.Rows.Add(
+                    s.Codigo,
+                    s.FechaSolicitud.ToString("dd/MM/yyyy HH:mm"),
+                    s.UsuarioSolicitante?.Nombre,
+                    s.Plataforma?.Nombre,
+                    s.TipoAcceso.ToString(),
+                    s.Estado.ToString(),
+                    s.Analista?.Nombre ?? "—",
+                    s.Justificacion
+                );
+            }
+
+            // 3. Generar archivo Excel con ClosedXML
+            using (var wb = new XLWorkbook())
+            {
+                var ws = wb.Worksheets.Add(dt, "Solicitudes");
+                ws.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    wb.SaveAs(stream);
+                    var content = stream.ToArray();
+
+                    return File(
+                        content,
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        $"Solicitudes_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
+                    );
+                }
+            }
         }
 
         private async Task<string> GenerarCodigo()

@@ -3,12 +3,20 @@
     ViewData["Title"] = "Solicitudes de Acceso";
 }
 
-<h3>Solicitudes de Acceso</h3>
-
-@if (User.IsInRole("Solicitante") || User.IsInRole("Admin"))
-{
-    <a asp-action="Create" class="btn btn-primary mb-3">Nueva Solicitud</a>
-}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Solicitudes de Acceso</h3>
+    <div>
+        @if (User.IsInRole("Solicitante") || User.IsInRole("Admin"))
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nueva Solicitud
+            </a>
+        }
+        <button id="btnExportarExcel" class="btn btn-outline-success ms-2" title="Exportar a Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i> Exportar
+        </button>
+    </div>
+</div>
 
 <!-- Filtros -->
 <div class="card mb-3">
@@ -151,7 +159,7 @@
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#ffc107',
-                    confirmButtonText: 'Si, tomar',
+                    confirmButtonText: 'Sí, tomar',
                     cancelButtonText: 'Cancelar'
                 }).then(result => {
                     if (result.isConfirmed) form.submit();
@@ -171,11 +179,51 @@
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#0dcaf0',
-                    confirmButtonText: 'Si, implementar',
+                    confirmButtonText: 'Sí, implementar',
                     cancelButtonText: 'Cancelar'
                 }).then(result => {
                     if (result.isConfirmed) form.submit();
                 });
+            });
+        });
+
+        // Exportar a Excel (sin confirmacion, solo descarga directa)
+        document.getElementById('btnExportarExcel')?.addEventListener('click', function() {
+            const estado = document.querySelector('#Estado')?.value || '';
+            const plataformaId = document.querySelector('#PlataformaId')?.value || '';
+            const fechaDesde = document.querySelector('#FechaDesde')?.value || '';
+            const fechaHasta = document.querySelector('#FechaHasta')?.value || '';
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+            const formData = new URLSearchParams();
+            if (estado) formData.append('Estado', estado);
+            if (plataformaId) formData.append('PlataformaId', plataformaId);
+            if (fechaDesde) formData.append('FechaDesde', fechaDesde);
+            if (fechaHasta) formData.append('FechaHasta', fechaHasta);
+
+            fetch('@Url.Action("ExportarExcel", "Solicitudes")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: formData.toString()
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const now = new Date();
+                const fechaStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}`;
+                a.download = `Solicitudes_${fechaStr}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                console.error('Error al exportar:', error);
             });
         });
     </script>
