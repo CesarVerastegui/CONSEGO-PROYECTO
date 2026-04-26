@@ -12,5 +12,6 @@ namespace CONSEGO.Repository
         void Delete(Plataforma plataforma);
         Task SaveChangesAsync();
         Task<IEnumerable<Plataforma>> GetAllActivasAsync();
+        Task<int> CountActivasAsync();
     }
 }

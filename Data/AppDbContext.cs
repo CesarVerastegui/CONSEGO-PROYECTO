@@ -1,6 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using CONSEGO.Models;
 using CONSEGO.Models.Enums;
+using CONSEGO.Service;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -14,6 +15,31 @@ namespace CONSEGO.Data
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Plataforma> Plataformas { get; set; }
         public DbSet<SolicitudAcceso> SolicitudesAcceso { get; set; }
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+        private readonly IAuditService _auditService;
+
+        public AppDbContext(
+            DbContextOptions<AppDbContext> options,
+            IAuditService auditService)
+            : base(options)
+        {
+            _auditService = auditService;
+        }
+
+        public override int SaveChanges()
+        {
+            _auditService.AddAuditLogs(ChangeTracker);
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(
+            CancellationToken cancellationToken = default)
+        {
+            _auditService.AddAuditLogs(ChangeTracker);
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

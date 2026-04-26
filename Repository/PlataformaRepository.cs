@@ -55,5 +55,7 @@ namespace CONSEGO.Repository
                 .OrderBy(p => p.Nombre)
                 .ToListAsync();
         }
+
+        public async Task<int> CountActivasAsync() => await _context.Plataformas.CountAsync(p => p.Activa);
     }
 }

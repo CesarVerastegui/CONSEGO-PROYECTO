@@ -25,5 +25,14 @@ namespace CONSEGO.Repository
         public void Update(Usuario usuario) => _context.Usuarios.Update(usuario);
         public void Delete(Usuario usuario) => _context.Usuarios.Remove(usuario);
         public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
+        public async Task<int> CountActivosAsync() => await _context.Usuarios.CountAsync(u => u.Activo);
+        public async Task<Usuario?> ObtenerPorEmailYPasswordAsync(string email, string passwordHash)
+        {
+            return await _context.Usuarios
+                .Include(u => u.Rol)
+                .FirstOrDefaultAsync(u => u.Email == email &&
+                                         u.PasswordHash == passwordHash &&
+                                         u.Activo);
+        }
     }
 }

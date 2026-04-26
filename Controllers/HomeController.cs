@@ -1,8 +1,9 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using CONSEGO.Data;
 using CONSEGO.Models.Enums;
 using CONSEGO.Models.ViewModels;
+using CONSEGO.Service;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CONSEGO.Controllers
@@ -10,29 +11,18 @@ namespace CONSEGO.Controllers
     [Authorize]
     public class HomeController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IDashboardService _dashboardService;
 
-        public HomeController(AppDbContext context)
+        public HomeController(IDashboardService dashboardService)
         {
-            _context = context;
+            _dashboardService = dashboardService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var dashboard = new DashboardViewModel
-            {
-                TotalSolicitudes = await _context.SolicitudesAcceso.CountAsync(),
-                TotalPlataformasActivas = await _context.Plataformas.CountAsync(p => p.Activa),
-                TotalUsuariosActivos = await _context.Usuarios.CountAsync(u => u.Activo),
-
-                SolicitudesAprobadas = await _context.SolicitudesAcceso.CountAsync(s => s.Estado == EstadoSolicitud.Aprobado),
-                SolicitudesImplementadas = await _context.SolicitudesAcceso.CountAsync(s => s.Estado == EstadoSolicitud.Implementado),
-                SolicitudesRechazadas = await _context.SolicitudesAcceso.CountAsync(s => s.Estado == EstadoSolicitud.Rechazado),
-                SolicitudesPendientes = await _context.SolicitudesAcceso.CountAsync(s =>
-                    s.Estado == EstadoSolicitud.Registrado || s.Estado == EstadoSolicitud.EnAnalisis)
-            };
-
-            return View(dashboard);
+            // Solo pide el objeto y lo envía a la vista
+            var viewModel = await _dashboardService.GetDashboardStatsAsync();
+            return View(viewModel);
         }
     }
 }
