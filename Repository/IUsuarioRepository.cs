@@ -12,5 +12,7 @@ namespace CONSEGO.Repository
         void Update(Usuario usuario);
         void Delete(Usuario usuario);
         Task SaveChangesAsync();
+        Task<int> CountActivosAsync();
+        Task<Usuario?> ObtenerPorEmailYPasswordAsync(string email, string passwordHash);
     }
 }

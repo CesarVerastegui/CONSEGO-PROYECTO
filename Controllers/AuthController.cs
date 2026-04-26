@@ -1,20 +1,21 @@
+using System.Security.Claims;
+using CONSEGO.Data;
+using CONSEGO.Models.ViewModels;
+using CONSEGO.Service;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CONSEGO.Data;
-using CONSEGO.Models.ViewModels;
-using System.Security.Claims;
 
 namespace CONSEGO.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IAuthService _authService;
 
-        public AuthController(AppDbContext context)
+        public AuthController(IAuthService authService)
         {
-            _context = context;
+            _authService = authService;
         }
 
         [HttpGet]
@@ -22,7 +23,6 @@ namespace CONSEGO.Controllers
         {
             if (User.Identity?.IsAuthenticated == true)
                 return RedirectToAction("Index", "Home");
-
             return View();
         }
 
@@ -30,15 +30,9 @@ namespace CONSEGO.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (!ModelState.IsValid)
-                return View(model);
+            if (!ModelState.IsValid) return View(model);
 
-            var hash = AppDbContext.HashPassword(model.Password);
-
-            // Incluir Rol para poder acceder a usuario.Rol.Nombre
-            var usuario = await _context.Usuarios
-                .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.Email == model.Email && u.PasswordHash == hash && u.Activo);
+            var usuario = await _authService.ValidarUsuarioAsync(model.Email, model.Password);
 
             if (usuario == null)
             {
@@ -46,25 +40,18 @@ namespace CONSEGO.Controllers
                 return View(model);
             }
 
-            // Verificar que el Rol no sea nulo
-            if (usuario.Rol == null)
-            {
-                ModelState.AddModelError("", "El usuario no tiene un rol asignado válido.");
-                return View(model);
-            }
-
+            // Gestión de Claims (esto se queda en el controlador ya que es parte de la "Web")
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
                 new Claim(ClaimTypes.Name, usuario.Nombre),
                 new Claim(ClaimTypes.Email, usuario.Email),
-                new Claim(ClaimTypes.Role, usuario.Rol.Nombre)
+                new Claim(ClaimTypes.Role, usuario.Rol?.Nombre ?? "Sin Rol")
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(identity),
                 new AuthenticationProperties { IsPersistent = true });
 
             return RedirectToAction("Index", "Home");
@@ -78,9 +65,6 @@ namespace CONSEGO.Controllers
             return RedirectToAction("Login");
         }
 
-        public IActionResult AccessDenied()
-        {
-            return View();
-        }
+        public IActionResult AccessDenied() => View();
     }
 }
