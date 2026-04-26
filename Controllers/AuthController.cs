@@ -40,7 +40,7 @@ namespace CONSEGO.Controllers
                 return View(model);
             }
 
-            // Gestión de Claims (esto se queda en el controlador ya que es parte de la "Web")
+            // Gestión de Claims
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
@@ -49,7 +49,7 @@ namespace CONSEGO.Controllers
                 new Claim(ClaimTypes.Role, usuario.Rol?.Nombre ?? "Sin Rol")
             };
 
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(identity),
                 new AuthenticationProperties { IsPersistent = true });
