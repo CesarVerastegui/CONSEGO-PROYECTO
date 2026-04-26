@@ -1,105 +1,68 @@
+using System.Data;
+using System.Security.Claims;
+using ClosedXML.Excel;
+using CONSEGO.Data;
+using CONSEGO.DTOs;
+using CONSEGO.Models;
+using CONSEGO.Models.Enums;
+using CONSEGO.Models.ViewModels;
+using CONSEGO.Repository;
+using CONSEGO.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using CONSEGO.Data;
-using CONSEGO.Models;
-using CONSEGO.Models.Enums;
-using CONSEGO.Models.ViewModels;
-using System.Security.Claims;
-using ClosedXML.Excel;
-using System.Data;
 
 namespace CONSEGO.Controllers
 {
     [Authorize]
     public class SolicitudesController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly ISolicitudService _solicitudService;
+        private readonly IPlataformaRepository _plataformaRepo; // Para llenar los select lists
 
-        public SolicitudesController(AppDbContext context)
+        public SolicitudesController(ISolicitudService solicitudService, IPlataformaRepository plataformaRepo)
         {
-            _context = context;
+            _solicitudService = solicitudService;
+            _plataformaRepo = plataformaRepo;
         }
 
-        private int GetUsuarioId() =>
-            int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        private int GetUsuarioId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        private string GetRol() => User.FindFirstValue(ClaimTypes.Role)!;
 
-        private string GetRol() =>
-            User.FindFirstValue(ClaimTypes.Role)!;
-
-        // GET: Solicitudes (con filtros y paginación)
+        // GET: Solicitudes
         public async Task<IActionResult> Index(SolicitudFiltroViewModel filtro)
         {
-            var query = _context.SolicitudesAcceso
-                .Include(s => s.UsuarioSolicitante)
-                .Include(s => s.Plataforma)
-                .Include(s => s.Analista)
-                .AsQueryable();
+            var model = await _solicitudService.ListarFiltradoAsync(filtro, GetUsuarioId(), GetRol());
 
-            var rol = GetRol();
-            var userId = GetUsuarioId();
+            // Cargamos plataformas para el filtro del Index
+            var plataformas = await _plataformaRepo.GetAllActivasAsync();
+            model.PlataformasDisponibles = plataformas.Select(p => new Models.Plataforma { Id = p.Id, Nombre = p.Nombre }).ToList();
 
-            // Solicitante solo ve sus propias solicitudes
-            if (rol == "Solicitante")
-                query = query.Where(s => s.UsuarioSolicitanteId == userId);
-
-            // Infra solo ve aprobadas e implementadas
-            if (rol == "Infra")
-                query = query.Where(s => s.Estado == EstadoSolicitud.Aprobado || s.Estado == EstadoSolicitud.Implementado);
-
-            // Filtros
-            if (filtro.Estado.HasValue)
-                query = query.Where(s => s.Estado == filtro.Estado.Value);
-
-            if (filtro.PlataformaId.HasValue)
-                query = query.Where(s => s.PlataformaId == filtro.PlataformaId.Value);
-
-            if (filtro.FechaDesde.HasValue)
-                query = query.Where(s => s.FechaSolicitud >= filtro.FechaDesde.Value);
-
-            if (filtro.FechaHasta.HasValue)
-                query = query.Where(s => s.FechaSolicitud <= filtro.FechaHasta.Value);
-
-            filtro.TotalRegistros = await query.CountAsync();
-
-            filtro.Solicitudes = await query
-                .OrderByDescending(s => s.FechaSolicitud)
-                .Skip((filtro.Pagina - 1) * filtro.TamañoPagina)
-                .Take(filtro.TamañoPagina)
-                .ToListAsync();
-
-            filtro.PlataformasDisponibles = await _context.Plataformas.Where(p => p.Activa).ToListAsync();
-
-            return View(filtro);
+            return View(model);
         }
 
         // GET: Solicitudes/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var solicitud = await _context.SolicitudesAcceso
-                .Include(s => s.UsuarioSolicitante)
-                .Include(s => s.Plataforma)
-                .Include(s => s.Analista)
-                .FirstOrDefaultAsync(s => s.Id == id);
+            // Nota: Aquí podrías agregar un método GetByIdAsync en el Service que devuelva un ResponseDTO
+            // Por ahora, asumimos que el Service o Repositorio maneja la obtención
+            var solicitud = await _solicitudService.ObtenerDetalleAsync(id);
 
             if (solicitud == null) return NotFound();
 
-            var rol = GetRol();
-            var userId = GetUsuarioId();
-
-            if (rol == "Solicitante" && solicitud.UsuarioSolicitanteId != userId)
+            // Validación de seguridad: El solicitante solo ve lo suyo
+            if (GetRol() == "Solicitante" && solicitud.UsuarioSolicitanteId != GetUsuarioId())
                 return Forbid();
 
             return View(solicitud);
         }
 
-        // GET: Solicitudes/Create (solo Solicitante y Admin)
+        // GET: Solicitudes/Create
         [Authorize(Roles = "Solicitante,Admin")]
         public async Task<IActionResult> Create()
         {
-            ViewBag.Plataformas = new SelectList(
-                await _context.Plataformas.Where(p => p.Activa).ToListAsync(), "Id", "Nombre");
+            ViewBag.Plataformas = new SelectList(await _plataformaRepo.GetAllActivasAsync(), "Id", "Nombre");
             return View();
         }
 
@@ -107,69 +70,45 @@ namespace CONSEGO.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Solicitante,Admin")]
-        public async Task<IActionResult> Create(SolicitudAcceso solicitud)
+        public async Task<IActionResult> Create(SolicitudCreateDTO dto)
         {
-            // Quitar validación de navegación
-            ModelState.Remove("UsuarioSolicitante");
-            ModelState.Remove("Plataforma");
-            ModelState.Remove("Analista");
-            ModelState.Remove("Codigo");
-
             if (!ModelState.IsValid)
             {
-                ViewBag.Plataformas = new SelectList(
-                    await _context.Plataformas.Where(p => p.Activa).ToListAsync(), "Id", "Nombre");
-                return View(solicitud);
+                ViewBag.Plataformas = new SelectList(await _plataformaRepo.GetAllActivasAsync(), "Id", "Nombre");
+                return View(dto);
             }
 
-            solicitud.UsuarioSolicitanteId = GetUsuarioId();
-            solicitud.Estado = EstadoSolicitud.Registrado;
-            solicitud.FechaSolicitud = DateTime.Now;
-            solicitud.Codigo = await GenerarCodigo();
-
-            _context.SolicitudesAcceso.Add(solicitud);
-            await _context.SaveChangesAsync();
-            TempData["Success"] = $"Solicitud {solicitud.Codigo} creada exitosamente.";
+            var codigo = await _solicitudService.CrearSolicitudAsync(dto, GetUsuarioId());
+            TempData["Success"] = $"Solicitud {codigo} creada exitosamente.";
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: Solicitudes/Tomar/5 (Analista toma la solicitud -> EnAnalisis)
+        // POST: Solicitudes/Tomar/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "AnalistaSeguridad,Admin")]
         public async Task<IActionResult> Tomar(int id)
         {
-            var solicitud = await _context.SolicitudesAcceso.FindAsync(id);
-            if (solicitud == null) return NotFound();
+            var exito = await _solicitudService.TomarSolicitudAsync(id, GetUsuarioId());
 
-            if (solicitud.Estado != EstadoSolicitud.Registrado)
-            {
-                TempData["Error"] = "Solo se pueden tomar solicitudes en estado Registrado.";
-                return RedirectToAction(nameof(Index));
-            }
+            if (exito)
+                TempData["Success"] = "Solicitud tomada para análisis.";
+            else
+                TempData["Error"] = "No se pudo tomar la solicitud (estado incorrecto o no encontrada).";
 
-            solicitud.Estado = EstadoSolicitud.EnAnalisis;
-            solicitud.AnalistaId = GetUsuarioId();
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Solicitud {solicitud.Codigo} tomada para análisis.";
-            return RedirectToAction(nameof(Details), new { id });
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: Solicitudes/Resolver/5 (formulario para aprobar/rechazar)
+        // GET: Solicitudes/Resolver/5
         [Authorize(Roles = "AnalistaSeguridad,Admin")]
         public async Task<IActionResult> Resolver(int id)
         {
-            var solicitud = await _context.SolicitudesAcceso
-                .Include(s => s.UsuarioSolicitante)
-                .Include(s => s.Plataforma)
-                .FirstOrDefaultAsync(s => s.Id == id);
-
+            var solicitud = await _solicitudService.ObtenerDetalleAsync(id);
             if (solicitud == null) return NotFound();
 
-            if (solicitud.Estado != EstadoSolicitud.EnAnalisis)
+            if (solicitud.Estado != Models.Enums.EstadoSolicitud.EnAnalisis)
             {
-                TempData["Error"] = "Solo se pueden resolver solicitudes en estado En Análisis.";
+                TempData["Error"] = "Solo se pueden resolver solicitudes en análisis.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -182,153 +121,44 @@ namespace CONSEGO.Controllers
         [Authorize(Roles = "AnalistaSeguridad,Admin")]
         public async Task<IActionResult> Resolver(int id, string decision, string? observacionesSeguridad, string? motivoRechazo)
         {
-            var solicitud = await _context.SolicitudesAcceso.FindAsync(id);
-            if (solicitud == null) return NotFound();
+            var exito = await _solicitudService.ResolverSolicitudAsync(id, decision, observacionesSeguridad, motivoRechazo);
 
-            if (solicitud.Estado != EstadoSolicitud.EnAnalisis)
-            {
-                TempData["Error"] = "Solo se pueden resolver solicitudes en estado En Análisis.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            solicitud.ObservacionesSeguridad = observacionesSeguridad;
-            solicitud.FechaDecision = DateTime.Now;
-
-            if (decision == "Aprobar")
-            {
-                solicitud.Estado = EstadoSolicitud.Aprobado;
-                TempData["Success"] = $"Solicitud {solicitud.Codigo} aprobada.";
-            }
+            if (exito)
+                TempData["Success"] = $"Solicitud procesada como: {decision}.";
             else
-            {
-                solicitud.Estado = EstadoSolicitud.Rechazado;
-                solicitud.MotivoRechazo = motivoRechazo;
-                TempData["Success"] = $"Solicitud {solicitud.Codigo} rechazada.";
-            }
+                TempData["Error"] = "Error al intentar resolver la solicitud.";
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: Solicitudes/Implementar/5 (Infra/Admin marca implementada)
+        // POST: Solicitudes/Implementar/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Infra,Admin")]
         public async Task<IActionResult> Implementar(int id)
         {
-            var solicitud = await _context.SolicitudesAcceso.FindAsync(id);
-            if (solicitud == null) return NotFound();
+            var exito = await _solicitudService.ImplementarSolicitudAsync(id);
 
-            if (solicitud.Estado != EstadoSolicitud.Aprobado)
-            {
-                TempData["Error"] = "Solo se pueden implementar solicitudes aprobadas.";
-                return RedirectToAction(nameof(Index));
-            }
+            if (exito)
+                TempData["Success"] = "La solicitud ha sido marcada como implementada.";
+            else
+                TempData["Error"] = "No se pudo implementar (debe estar aprobada primero).";
 
-            solicitud.Estado = EstadoSolicitud.Implementado;
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Solicitud {solicitud.Codigo} marcada como implementada.";
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: Exportar a Excel con los filtros actuales
+        // POST: Solicitudes/ExportarExcel
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExportarExcel(SolicitudFiltroViewModel filtro)
         {
-            // 1. Obtener los mismos datos filtrados que en Index
-            var query = _context.SolicitudesAcceso
-                .Include(s => s.UsuarioSolicitante)
-                .Include(s => s.Plataforma)
-                .Include(s => s.Analista)
-                .AsQueryable();
+            var content = await _solicitudService.ExportarExcelAsync(filtro, GetUsuarioId(), GetRol());
 
-            var rol = GetRol();
-            var userId = GetUsuarioId();
-
-            if (rol == "Solicitante")
-                query = query.Where(s => s.UsuarioSolicitanteId == userId);
-
-            if (rol == "Infra")
-                query = query.Where(s => s.Estado == EstadoSolicitud.Aprobado || s.Estado == EstadoSolicitud.Implementado);
-
-            if (filtro.Estado.HasValue)
-                query = query.Where(s => s.Estado == filtro.Estado.Value);
-            if (filtro.PlataformaId.HasValue)
-                query = query.Where(s => s.PlataformaId == filtro.PlataformaId.Value);
-            if (filtro.FechaDesde.HasValue)
-                query = query.Where(s => s.FechaSolicitud >= filtro.FechaDesde.Value);
-            if (filtro.FechaHasta.HasValue)
-                query = query.Where(s => s.FechaSolicitud <= filtro.FechaHasta.Value);
-
-            var solicitudes = await query
-                .OrderByDescending(s => s.FechaSolicitud)
-                .ToListAsync();
-
-            // 2. Crear DataTable con los datos
-            var dt = new DataTable("Solicitudes");
-            dt.Columns.Add("Código", typeof(string));
-            dt.Columns.Add("Fecha Solicitud", typeof(string));
-            dt.Columns.Add("Solicitante", typeof(string));
-            dt.Columns.Add("Plataforma", typeof(string));
-            dt.Columns.Add("Tipo Acceso", typeof(string));
-            dt.Columns.Add("Estado", typeof(string));
-            dt.Columns.Add("Analista", typeof(string));
-            dt.Columns.Add("Justificación", typeof(string));
-
-            foreach (var s in solicitudes)
-            {
-                dt.Rows.Add(
-                    s.Codigo,
-                    s.FechaSolicitud.ToString("dd/MM/yyyy HH:mm"),
-                    s.UsuarioSolicitante?.Nombre,
-                    s.Plataforma?.Nombre,
-                    s.TipoAcceso.ToString(),
-                    s.Estado.ToString(),
-                    s.Analista?.Nombre ?? "—",
-                    s.Justificacion
-                );
-            }
-
-            // 3. Generar archivo Excel con ClosedXML
-            using (var wb = new XLWorkbook())
-            {
-                var ws = wb.Worksheets.Add(dt, "Solicitudes");
-                ws.Columns().AdjustToContents();
-
-                using (var stream = new MemoryStream())
-                {
-                    wb.SaveAs(stream);
-                    var content = stream.ToArray();
-
-                    return File(
-                        content,
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        $"Solicitudes_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
-                    );
-                }
-            }
-        }
-
-        private async Task<string> GenerarCodigo()
-        {
-            var año = DateTime.Now.Year;
-            var ultimoNumero = await _context.SolicitudesAcceso
-                .Where(s => s.Codigo.StartsWith($"ACC-{año}-"))
-                .OrderByDescending(s => s.Codigo)
-                .Select(s => s.Codigo)
-                .FirstOrDefaultAsync();
-
-            int siguiente = 1;
-            if (ultimoNumero != null)
-            {
-                var partes = ultimoNumero.Split('-');
-                if (partes.Length == 3 && int.TryParse(partes[2], out int num))
-                    siguiente = num + 1;
-            }
-
-            return $"ACC-{año}-{siguiente:D4}";
+            return File(
+                content,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"Solicitudes_{DateTime.Now:yyyyMMdd_HHmm}.xlsx"
+            );
         }
     }
 }

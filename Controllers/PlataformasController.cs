@@ -1,24 +1,26 @@
+using CONSEGO.Data;
+using CONSEGO.DTOs;
+using CONSEGO.Models;
+using CONSEGO.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CONSEGO.Data;
-using CONSEGO.Models;
 
 namespace CONSEGO.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class PlataformasController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IPlataformaService _service;
 
-        public PlataformasController(AppDbContext context)
+        public PlataformasController(IPlataformaService service)
         {
-            _context = context;
+            _service = service;
         }
 
         public async Task<IActionResult> Index()
         {
-            var plataformas = await _context.Plataformas.ToListAsync();
+            var plataformas = await _service.ListarTodoAsync();
             return View(plataformas);
         }
 
@@ -29,75 +31,70 @@ namespace CONSEGO.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Plataforma plataforma)
+        public async Task<IActionResult> Create(PlataformaCreateDTO dto)
         {
             if (!ModelState.IsValid)
-                return View(plataforma);
+                return View(dto);
 
-            if (await _context.Plataformas.AnyAsync(p => p.Nombre == plataforma.Nombre))
+            var exito = await _service.CrearAsync(dto);
+            if (!exito)
             {
                 ModelState.AddModelError("Nombre", "Ya existe una plataforma con ese nombre.");
-                return View(plataforma);
+                return View(dto);
             }
 
-            _context.Plataformas.Add(plataforma);
-            await _context.SaveChangesAsync();
             TempData["Success"] = "Plataforma creada exitosamente.";
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            var plataforma = await _context.Plataformas.FindAsync(id);
-            if (plataforma == null) return NotFound();
-            return View(plataforma);
+            var dto = await _service.ObtenerParaEditarAsync(id);
+            if (dto == null) return NotFound();
+
+            return View(dto);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Plataforma plataforma)
+        public async Task<IActionResult> Edit(int id, PlataformaUpdateDTO dto)
         {
-            if (id != plataforma.Id) return NotFound();
-            if (!ModelState.IsValid) return View(plataforma);
+            if (id != dto.Id) return NotFound();
 
-            if (await _context.Plataformas.AnyAsync(p => p.Nombre == plataforma.Nombre && p.Id != id))
+            if (!ModelState.IsValid)
+                return View(dto);
+
+            var exito = await _service.ActualizarAsync(dto);
+            if (!exito)
             {
                 ModelState.AddModelError("Nombre", "Ya existe una plataforma con ese nombre.");
-                return View(plataforma);
+                return View(dto);
             }
 
-            _context.Update(plataforma);
-            await _context.SaveChangesAsync();
             TempData["Success"] = "Plataforma actualizada exitosamente.";
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Delete(int id)
         {
-            var plataforma = await _context.Plataformas
-                .Include(p => p.Solicitudes)
-                .FirstOrDefaultAsync(p => p.Id == id);
-            if (plataforma == null) return NotFound();
-            return View(plataforma);
+            var dto = await _service.ObtenerDetallesAsync(id);
+            if (dto == null) return NotFound();
+
+            return View(dto);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var plataforma = await _context.Plataformas
-                .Include(p => p.Solicitudes)
-                .FirstOrDefaultAsync(p => p.Id == id);
-            if (plataforma == null) return NotFound();
+            var mensajeError = await _service.EliminarAsync(id);
 
-            if (plataforma.Solicitudes.Any())
+            if (mensajeError != null)
             {
-                TempData["Error"] = "No se puede eliminar la plataforma porque tiene solicitudes asociadas.";
+                TempData["Error"] = mensajeError;
                 return RedirectToAction(nameof(Index));
             }
 
-            _context.Plataformas.Remove(plataforma);
-            await _context.SaveChangesAsync();
             TempData["Success"] = "Plataforma eliminada exitosamente.";
             return RedirectToAction(nameof(Index));
         }

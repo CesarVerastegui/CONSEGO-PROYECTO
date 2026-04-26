@@ -1,4 +1,4 @@
-@model IEnumerable<Usuario>
+@model IEnumerable<CONSEGO.DTOs.UsuarioResponseDTO>
 @{
     ViewData["Title"] = "Usuarios";
 }
@@ -25,7 +25,7 @@
                 <td>@u.Id</td>
                 <td>@u.Nombre</td>
                 <td>@u.Email</td>
-                <td><span class="badge bg-secondary">@u.Rol?.Nombre</span></td>
+                <td><span class="badge bg-secondary">@u.RolNombre</span></td>
                 <td>
                     @if (u.Activo)
                     {
@@ -38,12 +38,10 @@
                 </td>
                 <td>@u.FechaCreacion.ToString("dd/MM/yyyy")</td>
                 <td>
-                    <!-- Boton Editar con lapiz -->
                     <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-outline-primary" title="Editar">
                         <i class="bi bi-pencil"></i>
                     </a>
 
-                    <!-- Boton Bloquear/Activar -->
                     @if (u.Activo)
                     {
                         <form asp-action="ToggleStatus" asp-route-id="@u.Id" method="post" class="d-inline toggle-form" data-nombre="@u.Nombre" data-estado="bloquear">
@@ -63,7 +61,6 @@
                         </form>
                     }
 
-                    <!-- Boton Eliminar TEMPORAL (para pruebas) -->
                     <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline delete-form" data-nombre="@u.Nombre">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="Eliminar">
@@ -88,11 +85,11 @@
 
                 const titulo = estado === 'bloquear' ? '¿Bloquear usuario?' : '¿Activar usuario?';
                 const texto = estado === 'bloquear'
-                    ? 'El usuario <strong>' + nombre + '</strong> no podra iniciar sesion.'
-                    : 'El usuario <strong>' + nombre + '</strong> podra acceder nuevamente.';
+                    ? `El usuario <strong>${nombre}</strong> no podrá iniciar sesión.`
+                    : `El usuario <strong>${nombre}</strong> podrá acceder nuevamente.`;
                 const icono = estado === 'bloquear' ? 'warning' : 'question';
                 const botonColor = estado === 'bloquear' ? '#dc3545' : '#198754';
-                const botonTexto = estado === 'bloquear' ? 'Si, bloquear' : 'Si, activar';
+                const botonTexto = estado === 'bloquear' ? 'Sí, bloquear' : 'Sí, activar';
 
                 Swal.fire({
                     title: titulo,
@@ -104,14 +101,12 @@
                     confirmButtonText: botonTexto,
                     cancelButtonText: 'Cancelar'
                 }).then(result => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
+                    if (result.isConfirmed) form.submit();
                 });
             });
         });
 
-        // Confirmar Eliminar TEMPORAL (para pruebas)
+        // Confirmar Eliminar
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -120,16 +115,14 @@
 
                 Swal.fire({
                     title: '¿Eliminar usuario?',
-                    html: 'El usuario <strong>' + nombre + '</strong> se eliminara permanentemente.',
+                    html: `El usuario <strong>${nombre}</strong> se eliminará permanentemente.`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc3545',
-                    confirmButtonText: 'Si, eliminar',
+                    confirmButtonText: 'Sí, eliminar',
                     cancelButtonText: 'Cancelar'
                 }).then(result => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
+                    if (result.isConfirmed) form.submit();
                 });
             });
         });

@@ -1,4 +1,5 @@
-@model IEnumerable<Plataforma>
+@model IEnumerable<CONSEGO.DTOs.PlataformaResponseDTO>
+@using CONSEGO.Models.Enums
 @{
     ViewData["Title"] = "Plataformas";
 }
@@ -46,43 +47,14 @@
                     }
                 </td>
                 <td>
-                    <!-- Botón Editar con lápiz -->
                     <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary" title="Editar">
                         <i class="bi bi-pencil"></i>
                     </a>
-
-                    <!-- Botón Eliminar -->
-                    <form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline delete-form" data-name="@p.Nombre">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="Eliminar">
-                            <i class="bi bi-trash3"></i>
-                        </button>
-                    </form>
+                    <a asp-action="Delete" asp-route-id="@p.Id" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                        <i class="bi bi-trash3"></i>
+                    </a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
-
-@section Scripts {
-    <script>
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const form = this.closest('form');
-                const name = form.getAttribute('data-name');
-                Swal.fire({
-                    title: '¿Eliminar plataforma?',
-                    html: `La plataforma <strong>${name}</strong> se eliminará permanentemente.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
-                }).then(result => {
-                    if (result.isConfirmed) form.submit();
-                });
-            });
-        });
-    </script>
-}

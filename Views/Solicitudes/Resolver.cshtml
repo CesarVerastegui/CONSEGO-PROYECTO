@@ -1,44 +1,61 @@
 @model SolicitudAcceso
+@using CONSEGO.Models.Enums
 @{
     ViewData["Title"] = $"Resolver Solicitud {Model.Codigo}";
 }
 
-<h3>Resolver Solicitud: @Model.Codigo</h3>
+<div class="container mt-4">
+    <h3>Resolver Solicitud: @Model.Codigo</h3>
 
-<div class="card mb-3">
-    <div class="card-body">
-        <p><strong>Solicitante:</strong> @Model.UsuarioSolicitante?.Nombre</p>
-        <p><strong>Plataforma:</strong> @Model.Plataforma?.Nombre</p>
-        <p><strong>Tipo de Acceso:</strong> @Model.TipoAcceso</p>
-        <p><strong>Justificación:</strong></p>
-        <div class="alert alert-light">@Model.Justificacion</div>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-sm-3"><strong>Solicitante:</strong></div>
+                <div class="col-sm-9">@Model.UsuarioSolicitante?.Nombre</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-sm-3"><strong>Plataforma:</strong></div>
+                <div class="col-sm-9">@Model.Plataforma?.Nombre</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-sm-3"><strong>Tipo de Acceso:</strong></div>
+                <div class="col-sm-9">@Model.TipoAcceso</div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <strong>Justificación:</strong>
+                    <div class="p-3 bg-light rounded border mt-2">
+                        @Model.Justificacion
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-md-8">
-        <form asp-action="Resolver" asp-route-id="@Model.Id" method="post">
-            @Html.AntiForgeryToken()
+    <form asp-action="Resolver" asp-route-id="@Model.Id" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
 
-            <div class="mb-3">
-                <label class="form-label">Observaciones de Seguridad</label>
-                <textarea name="observacionesSeguridad" class="form-control" rows="3" placeholder="Observaciones del análisis de seguridad..."></textarea>
-            </div>
+        <div class="mb-4">
+            <label class="form-label fw-bold">Observaciones de Seguridad</label>
+            <textarea name="observacionesSeguridad" class="form-control" rows="3" placeholder="Observaciones del análisis de seguridad..."></textarea>
+        </div>
 
-            <div class="mb-3">
-                <label class="form-label">Motivo de Rechazo (solo si rechaza)</label>
-                <textarea name="motivoRechazo" class="form-control" rows="3" placeholder="Motivo del rechazo..."></textarea>
-            </div>
+        <div class="mb-4">
+            <label class="form-label fw-bold text-danger">Motivo de Rechazo (obligatorio si rechaza)</label>
+            <textarea name="motivoRechazo" class="form-control" rows="3" placeholder="Indique por qué se rechaza..."></textarea>
+        </div>
 
-            <div class="d-flex gap-2">
-                <button type="submit" name="decision" value="Aprobar" class="btn btn-success btn-lg">
-                    ? Aprobar
-                </button>
-                <button type="submit" name="decision" value="Rechazar" class="btn btn-danger btn-lg">
-                    ? Rechazar
-                </button>
-                <a asp-action="Index" class="btn btn-secondary btn-lg">Cancelar</a>
-            </div>
-        </form>
-    </div>
+        <div class="d-flex gap-2">
+            <button type="submit" name="decision" value="Aprobar" class="btn btn-success px-4">
+                Aprobar
+            </button>
+            <button type="submit" name="decision" value="Rechazar" class="btn btn-danger px-4">
+                Rechazar
+            </button>
+            <a asp-action="Index" class="btn btn-secondary px-4">
+                Cancelar
+            </a>
+        </div>
+    </form>
 </div>

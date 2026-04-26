@@ -1,4 +1,6 @@
 @model SolicitudAcceso
+@using CONSEGO.Models.Enums
+
 @{
     ViewData["Title"] = $"Solicitud {Model.Codigo}";
 
@@ -8,105 +10,147 @@
         EstadoSolicitud.EnAnalisis => "bg-primary",
         EstadoSolicitud.Aprobado => "bg-success",
         EstadoSolicitud.Rechazado => "bg-danger",
-        EstadoSolicitud.Implementado => "bg-info",
+        EstadoSolicitud.Implementado => "bg-info text-dark",
         _ => "bg-secondary"
     };
 }
 
-<h3>Detalle de Solicitud <span class="badge @estadoBadge">@Model.Estado</span></h3>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Detalle de Solicitud: <span class="badge @estadoBadge">@Model.Estado</span></h3>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Listado
+        </a>
+    </div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <p><strong>Código:</strong> @Model.Codigo</p>
-                <p><strong>Fecha de Solicitud:</strong> @Model.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")</p>
-                <p><strong>Solicitante:</strong> @Model.UsuarioSolicitante?.Nombre</p>
-                <p><strong>Plataforma:</strong> @Model.Plataforma?.Nombre</p>
-                <p><strong>Tipo de Acceso:</strong> @Model.TipoAcceso</p>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Información General</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Código:</strong> @Model.Codigo</li>
+                        <li class="list-group-item"><strong>Fecha:</strong> @Model.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")</li>
+                        <li class="list-group-item"><strong>Solicitante:</strong> @Model.UsuarioSolicitante?.Nombre</li>
+                        <li class="list-group-item"><strong>Plataforma:</strong> @Model.Plataforma?.Nombre</li>
+                        <li class="list-group-item"><strong>Tipo de Acceso:</strong> @Model.TipoAcceso</li>
+                    </ul>
+                    <div class="mt-3">
+                        <label class="fw-bold">Justificación:</label>
+                        <div class="p-3 bg-light rounded border">
+                            @Model.Justificacion
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-6">
-                <p><strong>Justificación:</strong></p>
-                <div class="alert alert-light">@Model.Justificacion</div>
-                <p><strong>Analista Asignado:</strong> @(Model.Analista?.Nombre ?? "Sin asignar")</p>
-                @if (Model.FechaDecision.HasValue)
-                {
-                    <p><strong>Fecha de Decisión:</strong> @Model.FechaDecision.Value.ToString("dd/MM/yyyy HH:mm")</p>
-                }
-                @if (!string.IsNullOrEmpty(Model.ObservacionesSeguridad))
-                {
-                    <p><strong>Observaciones de Seguridad:</strong></p>
-                    <div class="alert alert-info">@Model.ObservacionesSeguridad</div>
-                }
-                @if (!string.IsNullOrEmpty(Model.MotivoRechazo))
-                {
-                    <p><strong>Motivo de Rechazo:</strong></p>
-                    <div class="alert alert-danger">@Model.MotivoRechazo</div>
-                }
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Estado de Resolución</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Analista Asignado:</strong> @(Model.Analista?.Nombre ?? "Sin asignar")</p>
+
+                    @if (Model.FechaDecision.HasValue)
+                    {
+                        <p><strong>Fecha de Decisión:</strong> @Model.FechaDecision.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.ObservacionesSeguridad))
+                    {
+                        <div class="mt-3">
+                            <label class="fw-bold text-primary">Observaciones de Seguridad:</label>
+                            <div class="alert alert-info py-2">
+                                @Model.ObservacionesSeguridad
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.MotivoRechazo))
+                    {
+                        <div class="mt-3">
+                            <label class="fw-bold text-danger">Motivo de Rechazo:</label>
+                            <div class="alert alert-danger py-2">
+                                @Model.MotivoRechazo
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.Estado == EstadoSolicitud.Registrado)
+                    {
+                        <div class="alert alert-warning mt-3">
+                            <i class="bi bi-clock"></i> Esperando a ser tomada por un analista.
+                        </div>
+                    }
+                </div>
             </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm bg-light">
+        <div class="card-body d-flex gap-2">
+            @if ((User.IsInRole("AnalistaSeguridad") || User.IsInRole("Admin")) && Model.Estado == EstadoSolicitud.Registrado)
+            {
+                <form asp-action="Tomar" asp-route-id="@Model.Id" method="post" id="tomarForm">
+                    @Html.AntiForgeryToken()
+                    <button type="button" id="tomarBtn" class="btn btn-warning px-4">
+                        <i class="bi bi-hand-index-thumb"></i> Tomar para Análisis
+                    </button>
+                </form>
+            }
+
+            @if ((User.IsInRole("AnalistaSeguridad") || User.IsInRole("Admin")) && Model.Estado == EstadoSolicitud.EnAnalisis)
+            {
+                <a asp-action="Resolver" asp-route-id="@Model.Id" class="btn btn-success px-4">
+                    <i class="bi bi-check2-square"></i> Resolver Ahora
+                </a>
+            }
+
+            @if ((User.IsInRole("Infra") || User.IsInRole("Admin")) && Model.Estado == EstadoSolicitud.Aprobado)
+            {
+                <form asp-action="Implementar" asp-route-id="@Model.Id" method="post" id="implementarForm">
+                    @Html.AntiForgeryToken()
+                    <button type="button" id="implementarBtn" class="btn btn-info px-4">
+                        <i class="bi bi-gear-fill"></i> Marcar como Implementado
+                    </button>
+                </form>
+            }
         </div>
     </div>
 </div>
 
-<div class="mt-3">
-    @if ((User.IsInRole("AnalistaSeguridad") || User.IsInRole("Admin")) && Model.Estado == EstadoSolicitud.Registrado)
-    {
-        <form asp-action="Tomar" asp-route-id="@Model.Id" method="post" class="d-inline" id="tomarForm">
-            @Html.AntiForgeryToken()
-            <button type="submit" id="tomarBtn" class="btn btn-warning">Tomar para Análisis</button>
-        </form>
-    }
-
-    @if ((User.IsInRole("AnalistaSeguridad") || User.IsInRole("Admin")) && Model.Estado == EstadoSolicitud.EnAnalisis)
-    {
-        <a asp-action="Resolver" asp-route-id="@Model.Id" class="btn btn-success">Resolver</a>
-    }
-
-    @if ((User.IsInRole("Infra") || User.IsInRole("Admin")) && Model.Estado == EstadoSolicitud.Aprobado)
-    {
-        <form asp-action="Implementar" asp-route-id="@Model.Id" method="post" class="d-inline" id="implementarForm">
-            @Html.AntiForgeryToken()
-            <button type="submit" id="implementarBtn" class="btn btn-info">Marcar Implementado</button>
-        </form>
-    }
-
-    <a asp-action="Index" class="btn btn-secondary">Volver al Listado</a>
-</div>
-
 @section Scripts {
     <script>
-        const tomarForm = document.getElementById('tomarForm');
-        const tomarBtn = document.getElementById('tomarBtn');
-        const implementarForm = document.getElementById('implementarForm');
-        const implementarBtn = document.getElementById('implementarBtn');
-
-        tomarBtn?.addEventListener('click', function(e) {
-            e.preventDefault();
+        // Usando jQuery para coincidir con el resto de tus vistas
+        $('#tomarBtn').on('click', function(e) {
             Swal.fire({
-                title: '¿Tomar solicitud?',
-                text: 'Pasará a estado "En Análisis" y quedará asignada a usted.',
+                title: '¿Tomar esta solicitud?',
+                text: 'Se te asignará como analista y el estado cambiará a "En Análisis".',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#ffc107',
                 confirmButtonText: 'Sí, tomar',
                 cancelButtonText: 'Cancelar'
-            }).then(result => {
-                if (result.isConfirmed) tomarForm.submit();
+            }).then((result) => {
+                if (result.isConfirmed) $('#tomarForm').submit();
             });
         });
 
-        implementarBtn?.addEventListener('click', function(e) {
-            e.preventDefault();
+        $('#implementarBtn').on('click', function(e) {
             Swal.fire({
-                title: '¿Marcar como implementada?',
-                text: 'Esta solicitud pasará a estado "Implementado".',
-                icon: 'question',
+                title: '¿Confirmar implementación?',
+                text: 'Confirma que el acceso ya ha sido configurado en la plataforma.',
+                icon: 'info',
                 showCancelButton: true,
                 confirmButtonColor: '#0dcaf0',
-                confirmButtonText: 'Sí, implementar',
+                confirmButtonText: 'Sí, implementado',
                 cancelButtonText: 'Cancelar'
-            }).then(result => {
-                if (result.isConfirmed) implementarForm.submit();
+            }).then((result) => {
+                if (result.isConfirmed) $('#implementarForm').submit();
             });
         });
     </script>

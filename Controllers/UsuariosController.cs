@@ -1,117 +1,83 @@
+using CONSEGO.Data;
+using CONSEGO.DTOs;
+using CONSEGO.Models;
+using CONSEGO.Models.ViewModels;
+using CONSEGO.Repository;
+using CONSEGO.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using CONSEGO.Data;
-using CONSEGO.Models;
-using CONSEGO.Models.ViewModels;
 
 namespace CONSEGO.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class UsuariosController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IUsuarioService _service;
+        private readonly IRolRepository _rolRepo; // Para llenar los combos de roles
 
-        public UsuariosController(AppDbContext context)
+        public UsuariosController(IUsuarioService service, IRolRepository rolRepo)
         {
-            _context = context;
+            _service = service;
+            _rolRepo = rolRepo;
         }
 
-        public async Task<IActionResult> Index()
-        {
-            var usuarios = await _context.Usuarios.Include(u => u.Rol).ToListAsync();
-            return View(usuarios);
-        }
+        public async Task<IActionResult> Index() => View(await _service.ListarUsuariosAsync());
 
         public async Task<IActionResult> Create()
         {
-            ViewBag.Roles = new SelectList(await _context.Roles.ToListAsync(), "Id", "Nombre");
+            ViewBag.Roles = new SelectList(await _rolRepo.GetAllAsync(), "Id", "Nombre");
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(UsuarioCreateViewModel model)
+        public async Task<IActionResult> Create(UsuarioCreateDTO dto)
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Roles = new SelectList(await _context.Roles.ToListAsync(), "Id", "Nombre");
-                return View(model);
+                ViewBag.Roles = new SelectList(await _rolRepo.GetAllAsync(), "Id", "Nombre");
+                return View(dto);
             }
 
-            if (await _context.Usuarios.AnyAsync(u => u.Email == model.Email))
+            if (!await _service.CrearUsuarioAsync(dto))
             {
-                ModelState.AddModelError("Email", "Ya existe un usuario con ese email.");
-                ViewBag.Roles = new SelectList(await _context.Roles.ToListAsync(), "Id", "Nombre");
-                return View(model);
+                ModelState.AddModelError("Email", "Email ya registrado.");
+                ViewBag.Roles = new SelectList(await _rolRepo.GetAllAsync(), "Id", "Nombre");
+                return View(dto);
             }
 
-            var usuario = new Usuario
-            {
-                Nombre = model.Nombre,
-                Email = model.Email,
-                PasswordHash = AppDbContext.HashPassword(model.Password),
-                RolId = model.RolId,
-                Activo = true,
-                FechaCreacion = DateTime.Now
-            };
-
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
-            TempData["Success"] = "Usuario creado exitosamente.";
+            TempData["Success"] = "Usuario creado.";
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null) return NotFound();
-
-            var model = new UsuarioEditViewModel
-            {
-                Id = usuario.Id,
-                Nombre = usuario.Nombre,
-                Email = usuario.Email,
-                RolId = usuario.RolId
-            };
-
-            ViewBag.Roles = new SelectList(await _context.Roles.ToListAsync(), "Id", "Nombre", model.RolId);
-            return View(model);
+            var dto = await _service.ObtenerParaEditarAsync(id);
+            if (dto == null) return NotFound();
+            ViewBag.Roles = new SelectList(await _rolRepo.GetAllAsync(), "Id", "Nombre", dto.RolId);
+            return View(dto);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, UsuarioEditViewModel model)
+        public async Task<IActionResult> Edit(int id, UsuarioUpdateDTO dto)
         {
-            if (id != model.Id) return NotFound();
-
-            if (!ModelState.IsValid)
+            if (id != dto.Id || !ModelState.IsValid)
             {
-                ViewBag.Roles = new SelectList(await _context.Roles.ToListAsync(), "Id", "Nombre", model.RolId);
-                return View(model);
+                ViewBag.Roles = new SelectList(await _rolRepo.GetAllAsync(), "Id", "Nombre", dto.RolId);
+                return View(dto);
             }
 
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null) return NotFound();
-
-            if (await _context.Usuarios.AnyAsync(u => u.Email == model.Email && u.Id != id))
+            if (!await _service.ActualizarUsuarioAsync(dto))
             {
-                ModelState.AddModelError("Email", "Ya existe un usuario con ese email.");
-                ViewBag.Roles = new SelectList(await _context.Roles.ToListAsync(), "Id", "Nombre", model.RolId);
-                return View(model);
+                ModelState.AddModelError("Email", "Email ya en uso.");
+                ViewBag.Roles = new SelectList(await _rolRepo.GetAllAsync(), "Id", "Nombre", dto.RolId);
+                return View(dto);
             }
 
-            usuario.Nombre = model.Nombre;
-            usuario.Email = model.Email;
-            usuario.RolId = model.RolId;
-
-            if (!string.IsNullOrWhiteSpace(model.Password))
-                usuario.PasswordHash = AppDbContext.HashPassword(model.Password);
-
-            _context.Update(usuario);
-            await _context.SaveChangesAsync();
-            TempData["Success"] = "Usuario actualizado exitosamente.";
+            TempData["Success"] = "Usuario actualizado.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -119,14 +85,7 @@ namespace CONSEGO.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null) return NotFound();
-
-            usuario.Activo = !usuario.Activo;
-            await _context.SaveChangesAsync();
-
-            var estado = usuario.Activo ? "activado" : "bloqueado";
-            TempData["Success"] = $"Usuario {usuario.Nombre} {estado} correctamente.";
+            await _service.ToggleEstadoAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
@@ -134,21 +93,9 @@ namespace CONSEGO.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null) return NotFound();
-
-            var tieneSolicitudes = await _context.SolicitudesAcceso
-                .AnyAsync(s => s.UsuarioSolicitanteId == id || s.AnalistaId == id);
-
-            if (tieneSolicitudes)
-            {
-                TempData["Error"] = "No se puede eliminar el usuario porque tiene solicitudes asociadas.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            _context.Usuarios.Remove(usuario);
-            await _context.SaveChangesAsync();
-            TempData["Success"] = $"Usuario {usuario.Nombre} eliminado correctamente.";
+            var error = await _service.EliminarUsuarioAsync(id);
+            if (error != null) TempData["Error"] = error;
+            else TempData["Success"] = "Usuario eliminado.";
             return RedirectToAction(nameof(Index));
         }
     }

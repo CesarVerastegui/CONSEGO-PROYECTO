@@ -1,4 +1,4 @@
-@model IEnumerable<Rol>
+@model IEnumerable<CONSEGO.DTOs.RolResponseDTO>
 @{
     ViewData["Title"] = "Roles";
 }
@@ -23,43 +23,16 @@
                 <td>@rol.Nombre</td>
                 <td>@rol.Descripcion</td>
                 <td>
-                    <!-- Botón Editar con lápiz azul -->
                     <a asp-action="Edit" asp-route-id="@rol.Id" class="btn btn-sm btn-outline-primary" title="Editar">
                         <i class="bi bi-pencil"></i>
                     </a>
 
-                    <!-- Botón Eliminar con basurero rojo -->
-                    <form asp-action="Delete" asp-route-id="@rol.Id" method="post" class="d-inline delete-form" data-name="@rol.Nombre">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="Eliminar">
-                            <i class="bi bi-trash3"></i>
-                        </button>
-                    </form>
+                    @* Usamos GET para ir a la vista de confirmación de borrado *@
+                    <a asp-action="Delete" asp-route-id="@rol.Id" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                        <i class="bi bi-trash3"></i>
+                    </a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
-
-@section Scripts {
-    <script>
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const form = this.closest('form');
-                const name = form.getAttribute('data-name');
-                Swal.fire({
-                    title: '¿Eliminar rol?',
-                    html: `El rol <strong>${name}</strong> se eliminará permanentemente.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
-                }).then(result => {
-                    if (result.isConfirmed) form.submit();
-                });
-            });
-        });
-    </script>
-}

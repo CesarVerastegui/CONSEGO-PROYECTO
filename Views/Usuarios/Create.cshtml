@@ -1,4 +1,4 @@
-@model UsuarioCreateViewModel
+@model CONSEGO.DTOs.UsuarioCreateDTO
 @{
     ViewData["Title"] = "Crear Usuario";
 }
@@ -23,13 +23,13 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Password" class="form-label"></label>
-                <input asp-for="Password" class="form-control" />
+                <label asp-for="Password" class="form-label">Contraseña</label>
+                <input asp-for="Password" type="password" class="form-control" />
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="RolId" class="form-label"></label>
+                <label asp-for="RolId" class="form-label">Rol</label>
                 <select asp-for="RolId" asp-items="@ViewBag.Roles" class="form-select">
                     <option value="">-- Seleccione --</option>
                 </select>

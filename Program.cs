@@ -1,5 +1,7 @@
 using CONSEGO.Data;
 using CONSEGO.Filters;
+using CONSEGO.Repository;
+using CONSEGO.Service;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,6 +32,19 @@ builder.Services.AddControllersWithViews(options =>
 });
 
 builder.Services.AddScoped<UsuarioActivoFilter>();
+
+builder.Services.AddScoped<IRolRepository, RolRepository>();
+builder.Services.AddScoped<IRolService, RolService>();
+
+builder.Services.AddScoped<IPlataformaRepository, PlataformaRepository>();
+builder.Services.AddScoped<IPlataformaService, PlataformaService>();
+
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+
+builder.Services.AddScoped<ISolicitudRepository, SolicitudRepository>();
+builder.Services.AddScoped<ISolicitudService, SolicitudService>();
+
 
 var app = builder.Build();
 

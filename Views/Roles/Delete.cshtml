@@ -1,4 +1,4 @@
-@model Rol
+@model CONSEGO.DTOs.RolResponseDTO
 @{
     ViewData["Title"] = "Eliminar Rol";
 }
@@ -9,9 +9,9 @@
     <div class="card-body">
         <p><strong>Nombre:</strong> @Model.Nombre</p>
         <p><strong>Descripción:</strong> @Model.Descripcion</p>
-        <p><strong>Usuarios asignados:</strong> @Model.Usuarios.Count</p>
+        <p><strong>Usuarios asignados:</strong> @Model.CantidadUsuarios</p>
 
-        @if (Model.Usuarios.Any())
+        @if (Model.CantidadUsuarios > 0)
         {
             <div class="alert alert-warning">
                 No se puede eliminar este rol porque tiene usuarios asignados.

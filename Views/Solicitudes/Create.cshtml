@@ -1,4 +1,6 @@
-@model SolicitudAcceso
+@using CONSEGO.DTOs
+@using CONSEGO.Models.Enums
+@model SolicitudCreateDTO
 @{
     ViewData["Title"] = "Nueva Solicitud de Acceso";
 }
@@ -11,7 +13,7 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="mb-3">
-                <label asp-for="PlataformaId" class="form-label"></label>
+                <label asp-for="PlataformaId" class="form-label">Plataforma</label>
                 <select asp-for="PlataformaId" asp-items="@ViewBag.Plataformas" class="form-select">
                     <option value="">-- Seleccione Plataforma --</option>
                 </select>
@@ -19,7 +21,7 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="TipoAcceso" class="form-label"></label>
+                <label asp-for="TipoAcceso" class="form-label">Tipo de Acceso</label>
                 <select asp-for="TipoAcceso" asp-items="Html.GetEnumSelectList<TipoAcceso>()" class="form-select">
                     <option value="">-- Seleccione --</option>
                 </select>
@@ -27,7 +29,7 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Justificacion" class="form-label"></label>
+                <label asp-for="Justificacion" class="form-label">Justificación</label>
                 <textarea asp-for="Justificacion" class="form-control" rows="4" placeholder="Explique por qué necesita este acceso..."></textarea>
                 <span asp-validation-for="Justificacion" class="text-danger"></span>
             </div>
@@ -42,10 +44,9 @@
     <script>
         document.getElementById('createForm')?.addEventListener('submit', function(e) {
             e.preventDefault();
-            if (!this.checkValidity()) {
-                this.reportValidity();
-                return;
-            }
+            // Usando validación de jQuery para que funcione con los spans de error
+            if (!$(this).valid()) return;
+
             Swal.fire({
                 title: '¿Enviar solicitud?',
                 text: 'La solicitud será registrada y enviada al área de seguridad.',

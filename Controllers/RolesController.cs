@@ -1,99 +1,91 @@
+using CONSEGO.Data;
+using CONSEGO.DTOs;
+using CONSEGO.Models;
+using CONSEGO.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CONSEGO.Data;
-using CONSEGO.Models;
 
 namespace CONSEGO.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class RolesController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IRolService _rolService;
 
-        public RolesController(AppDbContext context)
+        public RolesController(IRolService rolService)
         {
-            _context = context;
+            _rolService = rolService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var roles = await _context.Roles.ToListAsync();
+            var roles = await _rolService.ListarRolesAsync();
             return View(roles);
         }
 
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Rol rol)
+        public async Task<IActionResult> Create(RolCreateDTO dto)
         {
-            if (!ModelState.IsValid)
-                return View(rol);
+            if (!ModelState.IsValid) return View(dto);
 
-            if (await _context.Roles.AnyAsync(r => r.Nombre == rol.Nombre))
+            var exito = await _rolService.CrearRolAsync(dto);
+            if (!exito)
             {
                 ModelState.AddModelError("Nombre", "Ya existe un rol con ese nombre.");
-                return View(rol);
+                return View(dto);
             }
 
-            _context.Roles.Add(rol);
-            await _context.SaveChangesAsync();
             TempData["Success"] = "Rol creado exitosamente.";
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            var rol = await _context.Roles.FindAsync(id);
-            if (rol == null) return NotFound();
-            return View(rol);
+            var dto = await _rolService.ObtenerParaEditarAsync(id);
+            if (dto == null) return NotFound();
+            return View(dto);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Rol rol)
+        public async Task<IActionResult> Edit(int id, RolUpdateDTO dto)
         {
-            if (id != rol.Id) return NotFound();
-            if (!ModelState.IsValid) return View(rol);
+            if (id != dto.Id) return NotFound();
+            if (!ModelState.IsValid) return View(dto);
 
-            if (await _context.Roles.AnyAsync(r => r.Nombre == rol.Nombre && r.Id != id))
+            var exito = await _rolService.ActualizarRolAsync(dto);
+            if (!exito)
             {
                 ModelState.AddModelError("Nombre", "Ya existe un rol con ese nombre.");
-                return View(rol);
+                return View(dto);
             }
 
-            _context.Update(rol);
-            await _context.SaveChangesAsync();
             TempData["Success"] = "Rol actualizado exitosamente.";
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Delete(int id)
         {
-            var rol = await _context.Roles.Include(r => r.Usuarios).FirstOrDefaultAsync(r => r.Id == id);
-            if (rol == null) return NotFound();
-            return View(rol);
+            var dto = await _rolService.ObtenerDetallesAsync(id);
+            if (dto == null) return NotFound();
+            return View(dto);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var rol = await _context.Roles.Include(r => r.Usuarios).FirstOrDefaultAsync(r => r.Id == id);
-            if (rol == null) return NotFound();
-
-            if (rol.Usuarios.Any())
+            var error = await _rolService.EliminarRolAsync(id);
+            if (error != null)
             {
-                TempData["Error"] = "No se puede eliminar el rol porque tiene usuarios asignados.";
+                TempData["Error"] = error;
                 return RedirectToAction(nameof(Index));
             }
 
-            _context.Roles.Remove(rol);
-            await _context.SaveChangesAsync();
             TempData["Success"] = "Rol eliminado exitosamente.";
             return RedirectToAction(nameof(Index));
         }

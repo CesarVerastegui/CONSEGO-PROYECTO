@@ -1,4 +1,4 @@
-@model UsuarioEditViewModel
+@model CONSEGO.DTOs.UsuarioUpdateDTO
 @{
     ViewData["Title"] = "Editar Usuario";
 }
@@ -24,16 +24,14 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Password" class="form-label"></label>
-                <input asp-for="Password" class="form-control" placeholder="Dejar vacio para no cambiar" />
+                <label asp-for="Password" class="form-label">Nueva Contraseña</label>
+                <input asp-for="Password" type="password" class="form-control" placeholder="Dejar vacío para no cambiar" />
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="RolId" class="form-label"></label>
-                <select asp-for="RolId" asp-items="@ViewBag.Roles" class="form-select">
-                    <option value="">-- Seleccione --</option>
-                </select>
+                <label asp-for="RolId" class="form-label">Rol</label>
+                <select asp-for="RolId" asp-items="@ViewBag.Roles" class="form-select"></select>
                 <span asp-validation-for="RolId" class="text-danger"></span>
             </div>
 
@@ -45,25 +43,19 @@
 
 @section Scripts {
     <script>
-        var form = document.getElementById('editUserForm');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                var that = this;
-                Swal.fire({
-                    title: '¿Actualizar usuario?',
-                    text: 'Los cambios se guardaran en el sistema.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#0d6efd',
-                    confirmButtonText: 'Si, actualizar',
-                    cancelButtonText: 'Cancelar'
-                }).then(function(result) {
-                    if (result.isConfirmed) {
-                        that.submit();
-                    }
-                });
+        document.getElementById('editUserForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: '¿Actualizar usuario?',
+                text: 'Los cambios se guardarán en el sistema.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd',
+                confirmButtonText: 'Sí, actualizar',
+                cancelButtonText: 'Cancelar'
+            }).then(result => {
+                if (result.isConfirmed) this.submit();
             });
-        }
+        });
     </script>
 }

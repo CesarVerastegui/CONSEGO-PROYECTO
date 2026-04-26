@@ -1,20 +1,42 @@
-@model Usuario
+@model CONSEGO.DTOs.UsuarioResponseDTO
 @{
     ViewData["Title"] = "Eliminar Usuario";
 }
 
 <h3>¿Eliminar este usuario?</h3>
 
-<div class="card col-md-6">
+<div class="card col-md-6 border-danger">
+    <div class="card-header bg-danger text-white">
+        Confirmar eliminación
+    </div>
     <div class="card-body">
         <p><strong>Nombre:</strong> @Model.Nombre</p>
         <p><strong>Email:</strong> @Model.Email</p>
-        <p><strong>Rol:</strong> @Model.Rol?.Nombre</p>
+        <p><strong>Rol:</strong> @Model.RolNombre</p>
+        <p>
+            <strong>Estado actual:</strong>
+            <span class="badge @(Model.Activo ? "bg-success" : "bg-danger")">
+                @(Model.Activo ? "Activo" : "Bloqueado")
+            </span>
+        </p>
 
+        <hr />
+
+        @* Nota: El Service ya maneja la validación, pero es mejor 
+           no mostrar el botón si sabemos que fallará. 
+        *@
         <form asp-action="Delete" method="post">
             @Html.AntiForgeryToken()
-            <input type="hidden" name="id" value="@Model.Id" />
-            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                Esta acción no se puede deshacer. Si el usuario tiene solicitudes registradas, el sistema impedirá el borrado por integridad de datos.
+            </div>
+
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Sí, eliminar permanentemente
+            </button>
             <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
         </form>
     </div>

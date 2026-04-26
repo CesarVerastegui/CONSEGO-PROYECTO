@@ -1,4 +1,4 @@
-@model Plataforma
+@model CONSEGO.DTOs.PlataformaResponseDTO
 @{
     ViewData["Title"] = "Eliminar Plataforma";
 }
@@ -10,9 +10,9 @@
         <p><strong>Nombre:</strong> @Model.Nombre</p>
         <p><strong>Tipo:</strong> @Model.Tipo</p>
         <p><strong>Criticidad:</strong> @Model.Criticidad</p>
-        <p><strong>Solicitudes asociadas:</strong> @Model.Solicitudes.Count</p>
+        <p><strong>Solicitudes asociadas:</strong> @Model.CantidadSolicitudes</p>
 
-        @if (Model.Solicitudes.Any())
+        @if (Model.CantidadSolicitudes > 0)
         {
             <div class="alert alert-warning">
                 No se puede eliminar esta plataforma porque tiene solicitudes asociadas.
