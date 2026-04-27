@@ -4,6 +4,7 @@ using CONSEGO.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CONSEGO.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260427215558_ImplementacionAuditoriaCompleta")]
+    partial class ImplementacionAuditoriaCompleta
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -315,21 +318,11 @@ namespace CONSEGO.Migrations
                         },
                         new
                         {
-                            Id = 3,
-                            Activo = true,
-                            Email = "solicitante@idmtechnology.pe",
-                            FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Nombre = "Juan Asto",
-                            PasswordHash = "WIxV884rhWmxU8WrvxP590MIuIogAXzGmbg1zJMZXRY=",
-                            RolId = 3
-                        },
-                        new
-                        {
                             Id = 4,
                             Activo = true,
                             Email = "auditor@idmtechnology.pe",
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Nombre = "Pedro Castro",
+                            Nombre = "Pedro Auditor",
                             PasswordHash = "WIxV884rhWmxU8WrvxP590MIuIogAXzGmbg1zJMZXRY=",
                             RolId = 5
                         });

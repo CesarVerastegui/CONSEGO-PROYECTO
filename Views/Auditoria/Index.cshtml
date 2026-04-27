@@ -1,0 +1,139 @@
+﻿@model IEnumerable<CONSEGO.Models.AuditLog>
+@{
+    ViewData["Title"] = "Auditoría de Sistema";
+}
+
+<style>
+    .badge-soft {
+        display: inline-block;
+        padding: 0.35em 0.8em;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 50rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .badge-soft-success {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-soft-danger {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-soft-warning {
+        background-color: #fef9c3;
+        color: #854d0e;
+    }
+
+    .badge-soft-info {
+        background-color: #e0f2fe;
+        color: #075985;
+    }
+
+    #tablaAuditoria thead.table-light th {
+        background-color: #f8f9fa !important;
+        color: #212529 !important;
+        border-bottom: 1px solid #dee2e6;
+        text-transform: none;
+        font-weight: 600;
+    }
+</style>
+
+<div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h3 class="mb-0">
+            <i class="bi bi-shield-lock me-2 text-primary"></i>Control de Auditoría
+        </h3>
+        <div class="d-flex gap-2">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-house me-1"></i>Inicio
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="tablaAuditoria" class="table table-striped table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha (UTC)</th>
+                        <th>Usuario</th>
+                        <th>Acción</th>
+                        <th>Entidad</th>
+                        <th>ID Ref.</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-muted">@item.TimestampUtc.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                            <td class="fw-bold">@item.Username</td>
+                            <td>
+                                @{
+                                    var (bClass, icon) = item.Action switch
+                                    {
+                                        "Added" => ("badge-soft-success", "bi-plus-circle"),
+                                        "Modified" => ("badge-soft-warning", "bi-pencil"),
+                                        "Deleted" => ("badge-soft-danger", "bi-trash"),
+                                        _ => ("badge-soft-info", "bi-info-circle")
+                                    };
+                                }
+                                <span class="badge-soft @bClass">
+                                    <i class="bi @icon me-1"></i>@item.Action
+                                </span>
+                            </td>
+                            <td><span class="text-primary fw-bold small">@item.Entity</span></td>
+                            <td><span class="badge bg-light text-dark border">#@item.EntityId</span></td>
+                            <td class="text-center">
+                                <div class="btn-group">
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Ver Detalle Completo">
+                                        <i class="bi bi-zoom-in"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-secondary" title="Vista Rápida"
+                                            onclick="previewChanges('@item.Entity', @Html.Raw(Json.Serialize(item.Changes)))">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaAuditoria').DataTable({
+                language: { "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json" },
+                responsive: true,
+                order: [[0, 'desc']],
+                pageLength: 10
+            });
+        });
+
+        function previewChanges(entidad, jsonStr) {
+            let content = '<p class="text-muted">Sin cambios detallados</p>';
+            if (jsonStr) {
+                try {
+                    const obj = JSON.parse(jsonStr);
+                    content = `<div class="text-start"><pre class="p-3 bg-light border rounded" style="font-size: 0.85rem;">${JSON.stringify(obj, null, 2)}</pre></div>`;
+                } catch (e) { content = `<p>${jsonStr}</p>`; }
+            }
+
+            Swal.fire({
+                title: `Cambios en ${entidad}`,
+                html: content,
+                confirmButtonText: 'Cerrar',
+                confirmButtonColor: '#6c757d'
+            });
+        }
+    </script>
+}

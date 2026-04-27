@@ -1,0 +1,81 @@
+﻿@model CONSEGO.Models.AuditLog
+@{
+    ViewData["Title"] = "Detalle de Auditoría";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-primary"><i class="bi bi-info-circle me-2"></i>Información del Evento</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless smal">
+                        <tr>
+                            <th class="text-muted" style="width: 150px;">ID Registro:</th>
+                            <td>#@Model.Id</td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Fecha (UTC):</th>
+                            <td>@Model.TimestampUtc.ToString("F")</td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Usuario:</th>
+                            <td class="fw-bold text-success">@Model.Username</td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Acción:</th>
+                            <td>
+                                <span class="badge bg-dark text-uppercase">@Model.Action</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Entidad:</th>
+                            <td><span class="text-primary fw-bold">@Model.Entity</span></td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">ID Entidad:</th>
+                            <td><code>#@Model.EntityId</code></td>
+                        </tr>
+                    </table>
+                    <hr />
+                    <div class="mt-3">
+                        <p class="text-muted mb-1 small uppercase fw-bold">Metadata Técnica</p>
+                        <p class="mb-1 small"><strong>IP:</strong> @(Model.IpAddress ?? "N/D")</p>
+                        <p class="small text-truncate"><strong>User Agent:</strong> @Model.UserAgent</p>
+                    </div>
+                </div>
+                <div class="card-footer bg-white py-3">
+                    <a asp-action="Index" class="btn btn-secondary w-100">
+                        <i class="bi bi-arrow-left me-1"></i>Volver al Listado
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-code-slash me-2"></i>Desglose de Cambios (JSON)</h5>
+                </div>
+                <div class="card-body p-0">
+                    <pre class="mb-0 p-4" style="background-color: #282c34; color: #abb2bf; border-radius: 0 0 5px 5px; min-height: 350px; overflow-x: auto;">
+@{
+        var formattedJson = "{}";
+        if (!string.IsNullOrEmpty(Model.Changes))
+        {
+                try
+                {
+                        var obj = System.Text.Json.JsonSerializer.Deserialize<object>(Model.Changes);
+                        formattedJson = System.Text.Json.JsonSerializer.Serialize(obj, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                }
+                catch { formattedJson = Model.Changes; }
+        }
+}
+@formattedJson</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
