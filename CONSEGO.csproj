@@ -7,6 +7,9 @@
     <UserSecretsId>3ba4ee71-5822-4a42-8c8f-ff82962deb47</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
+
+    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+	<TypeScriptEnableInEditor>false</TypeScriptEnableInEditor>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3,36 +3,124 @@
     ViewData["Title"] = "Roles";
 }
 
-<h3>Roles</h3>
-<a asp-action="Create" class="btn btn-primary mb-3">Nuevo Rol</a>
+<style>
+    /* Estilos Soft Badges Minimalistas */
+    .badge-soft {
+        display: inline-block;
+        padding: 0.35em 0.8em;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 50rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+    /* Color Indigo para identificar Roles */
+    .badge-soft-indigo {
+        background-color: #e0e7ff;
+        color: #3730a3;
+    }
 
-<table class="table table-striped table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var rol in Model)
-        {
-            <tr>
-                <td>@rol.Id</td>
-                <td>@rol.Nombre</td>
-                <td>@rol.Descripcion</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@rol.Id" class="btn btn-sm btn-outline-primary" title="Editar">
-                        <i class="bi bi-pencil"></i>
-                    </a>
+    /* Cabecera unificada con el resto del sistema */
+    #rolesTable thead.table-light th {
+        background-color: #f8f9fa !important;
+        color: #212529 !important;
+        border-bottom: 1px solid #dee2e6;
+        text-transform: none;
+        font-weight: 600;
+    }
+</style>
 
-                    @* Usamos GET para ir a la vista de confirmación de borrado *@
-                    <a asp-action="Delete" asp-route-id="@rol.Id" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                        <i class="bi bi-trash3"></i>
-                    </a>
-                </td>
-            </tr>
+<div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h3 class="mb-0">
+            <i class="bi bi-shield-lock me-2 text-primary"></i>Gestión de Roles
+        </h3>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Nuevo Rol
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="rolesTable" class="table table-striped table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th class="text-center" style="width: 120px">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var rol in Model)
+                    {
+                        <tr>
+                            <td>@rol.Id</td>
+                            <td>
+                                <span class="badge-soft badge-soft-indigo">
+                                    <i class="bi bi-shield-check me-1"></i>@rol.Nombre
+                                </span>
+                            </td>
+                            <td class="text-muted">@rol.Descripcion</td>
+                            <td class="text-center">
+                                <div class="btn-group">
+                                    <a asp-action="Edit" asp-route-id="@rol.Id"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger"
+                                            title="Eliminar"
+                                            onclick="confirmDelete(@rol.Id, '@rol.Nombre')">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#rolesTable').DataTable({
+                language: {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+                },
+                responsive: true,
+                order: [[0, 'desc']],
+                pageLength: 10,
+                lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
+                columnDefs: [
+                    { targets: [0], width: "80px" },
+                    { targets: [3], orderable: false, searchable: false }
+                ],
+                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                     '<"row"<"col-sm-12"tr>>' +
+                     '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>'
+            });
+        });
+
+        function confirmDelete(id, nombre) {
+            Swal.fire({
+                title: '¿Eliminar rol?',
+                html: `¿Estás seguro de que deseas eliminar el rol <strong>${nombre}</strong>?<br><span class="text-danger">Esta acción no se puede deshacer.</span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-trash3 me-1"></i>Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '@Url.Action("Delete", "Roles")/' + id;
+                }
+            });
         }
-    </tbody>
-</table>
+    </script>
+}

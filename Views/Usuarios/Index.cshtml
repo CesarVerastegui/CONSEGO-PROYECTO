@@ -3,125 +3,161 @@
     ViewData["Title"] = "Usuarios";
 }
 
-<h3>Usuarios</h3>
-<a asp-action="Create" class="btn btn-primary mb-3">Nuevo Usuario</a>
+<style>
+    /* Estilos Soft Badges Minimalistas */
+    .badge-soft {
+        display: inline-block;
+        padding: 0.35em 0.8em;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 50rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
 
-<table class="table table-striped table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Estado</th>
-            <th>Fecha Creación</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var u in Model)
-        {
-            <tr>
-                <td>@u.Id</td>
-                <td>@u.Nombre</td>
-                <td>@u.Email</td>
-                <td><span class="badge bg-secondary">@u.RolNombre</span></td>
-                <td>
-                    @if (u.Activo)
-                    {
-                        <span class="badge bg-success">Activo</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger">Bloqueado</span>
-                    }
-                </td>
-                <td>@u.FechaCreacion.ToString("dd/MM/yyyy")</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-outline-primary" title="Editar">
-                        <i class="bi bi-pencil"></i>
-                    </a>
+    .badge-soft-success {
+        background-color: #dcfce7;
+        color: #166534;
+    }
 
-                    @if (u.Activo)
-                    {
-                        <form asp-action="ToggleStatus" asp-route-id="@u.Id" method="post" class="d-inline toggle-form" data-nombre="@u.Nombre" data-estado="bloquear">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-outline-danger toggle-btn" title="Bloquear">
-                                <i class="bi bi-lock"></i>
-                            </button>
-                        </form>
-                    }
-                    else
-                    {
-                        <form asp-action="ToggleStatus" asp-route-id="@u.Id" method="post" class="d-inline toggle-form" data-nombre="@u.Nombre" data-estado="activar">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-outline-success toggle-btn" title="Activar">
-                                <i class="bi bi-unlock"></i>
-                            </button>
-                        </form>
-                    }
+    .badge-soft-danger {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
 
-                    <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline delete-form" data-nombre="@u.Nombre">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="Eliminar">
-                            <i class="bi bi-trash3"></i>
-                        </button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    .badge-soft-primary {
+        background-color: #e0e7ff;
+        color: #3730a3;
+    }
+
+    .badge-soft-secondary {
+        background-color: #f3f4f6;
+        color: #374151;
+    }
+
+    /* Cabecera unificada */
+    #usuariosTable thead.table-light th {
+        background-color: #f8f9fa !important;
+        color: #212529 !important;
+        border-bottom: 1px solid #dee2e6;
+        text-transform: none;
+    }
+</style>
+
+<div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h3 class="mb-0"><i class="bi bi-people me-2"></i>Gestión de Usuarios</h3>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Nuevo Usuario
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="usuariosTable" class="table table-striped table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th class="text-center">Estado</th>
+                        <th>Creación</th>
+                        <th class="text-center" style="min-width: 140px">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model)
+                    {
+                        <tr>
+                            <td>@u.Id</td>
+                            <td>@u.Nombre</td>
+                            <td>@u.Email</td>
+                            <td>
+                                <span class="badge-soft badge-soft-primary">@u.RolNombre</span>
+                            </td>
+                            <td class="text-center">
+                                @if (u.Activo)
+                                {
+                                    <span class="badge-soft badge-soft-success">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-soft badge-soft-danger">Bloqueado</span>
+                                }
+                            </td>
+                            <td>@u.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+
+                                    <form asp-action="ToggleStatus" asp-route-id="@u.Id" method="post" class="d-inline toggle-form" data-nombre="@u.Nombre" data-estado="@(u.Activo ? "bloquear" : "activar")">
+                                        @Html.AntiForgeryToken()
+                                        <button type="button" class="btn btn-sm @(u.Activo ? "btn-outline-warning" : "btn-outline-success") toggle-btn" title="@(u.Activo ? "Bloquear" : "Activar")">
+                                            <i class="bi @(u.Activo ? "bi-lock" : "bi-unlock")"></i>
+                                        </button>
+                                    </form>
+
+                                    <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline delete-form" data-nombre="@u.Nombre">
+                                        @Html.AntiForgeryToken()
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-btn" title="Eliminar">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
-        // Confirmar Bloquear/Activar usuario
-        document.querySelectorAll('.toggle-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const form = this.closest('form');
-                const nombre = form.getAttribute('data-nombre');
-                const estado = form.getAttribute('data-estado');
+        $(document).ready(function() {
+            // Inicialización de DataTable en español
+            $('#usuariosTable').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+                responsive: true,
+                order: [[0, 'desc']]
+            });
 
-                const titulo = estado === 'bloquear' ? '¿Bloquear usuario?' : '¿Activar usuario?';
-                const texto = estado === 'bloquear'
-                    ? `El usuario <strong>${nombre}</strong> no podrá iniciar sesión.`
-                    : `El usuario <strong>${nombre}</strong> podrá acceder nuevamente.`;
-                const icono = estado === 'bloquear' ? 'warning' : 'question';
-                const botonColor = estado === 'bloquear' ? '#dc3545' : '#198754';
-                const botonTexto = estado === 'bloquear' ? 'Sí, bloquear' : 'Sí, activar';
+            // Confirmar Bloquear/Activar con SweetAlert2
+            $('.toggle-btn').on('click', function() {
+                const form = $(this).closest('form');
+                const nombre = form.data('nombre');
+                const estado = form.data('estado');
 
                 Swal.fire({
-                    title: titulo,
-                    html: texto,
-                    icon: icono,
+                    title: estado === 'bloquear' ? '¿Bloquear usuario?' : '¿Activar usuario?',
+                    html: `El usuario <strong>${nombre}</strong> ${estado === 'bloquear' ? 'perderá' : 'recuperará'} el acceso al sistema.`,
+                    icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: botonColor,
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: botonTexto,
+                    confirmButtonColor: estado === 'bloquear' ? '#f59e0b' : '#10b981',
+                    confirmButtonText: 'Sí, continuar',
                     cancelButtonText: 'Cancelar'
-                }).then(result => {
+                }).then((result) => {
                     if (result.isConfirmed) form.submit();
                 });
             });
-        });
 
-        // Confirmar Eliminar
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const form = this.closest('form');
-                const nombre = form.getAttribute('data-nombre');
+            // Confirmar Eliminar con SweetAlert2
+            $('.delete-btn').on('click', function() {
+                const form = $(this).closest('form');
+                const nombre = form.data('nombre');
 
                 Swal.fire({
-                    title: '¿Eliminar usuario?',
-                    html: `El usuario <strong>${nombre}</strong> se eliminará permanentemente.`,
-                    icon: 'warning',
+                    title: '¿Eliminar permanentemente?',
+                    html: `Esta acción no se puede deshacer para el usuario <strong>${nombre}</strong>.`,
+                    icon: 'error',
                     showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
+                    confirmButtonColor: '#ef4444',
                     confirmButtonText: 'Sí, eliminar',
                     cancelButtonText: 'Cancelar'
-                }).then(result => {
+                }).then((result) => {
                     if (result.isConfirmed) form.submit();
                 });
             });
