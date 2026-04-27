@@ -4,58 +4,258 @@
     ViewData["Title"] = $"Resolver Solicitud {Model.Codigo}";
 }
 
-<div class="container mt-4">
-    <h3>Resolver Solicitud: @Model.Codigo</h3>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <div class="row mb-2">
-                <div class="col-sm-3"><strong>Solicitante:</strong></div>
-                <div class="col-sm-9">@Model.UsuarioSolicitante?.Nombre</div>
+            @* --- CABECERA DE ACCIÓN --- *@
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3 shadow-sm">
+                    <i class="bi bi-gavel text-warning fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0 text-dark">Resolver Solicitud: <span class="text-primary">@Model.Codigo</span></h3>
+                    <p class="text-muted mb-0 small text-uppercase fw-semibold tracking-wider">Módulo de Dictamen de Seguridad</p>
+                </div>
             </div>
-            <div class="row mb-2">
-                <div class="col-sm-3"><strong>Plataforma:</strong></div>
-                <div class="col-sm-9">@Model.Plataforma?.Nombre</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-sm-3"><strong>Tipo de Acceso:</strong></div>
-                <div class="col-sm-9">@Model.TipoAcceso</div>
-            </div>
-            <div class="row">
-                <div class="col-12">
-                    <strong>Justificación:</strong>
-                    <div class="p-3 bg-light rounded border mt-2">
-                        @Model.Justificacion
+
+            <div class="row g-4">
+                @* --- PANEL IZQUIERDO: INFORMACIÓN DE REFERENCIA --- *@
+                <div class="col-md-5">
+                    <div class="card shadow-sm border-0 border-top border-warning border-4 h-100">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold mb-4 d-flex align-items-center">
+                                <i class="bi bi-file-earmark-text me-2 text-warning"></i>Datos del Requerimiento
+                            </h5>
+
+                            <div class="mb-3">
+                                <label class="text-uppercase small fw-bold text-muted d-block">Solicitante</label>
+                                <div class="d-flex align-items-center mt-1">
+                                    <div class="bg-light rounded-circle p-2 me-2">
+                                        <i class="bi bi-person text-secondary"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark">@Model.UsuarioSolicitante?.Nombre</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="text-uppercase small fw-bold text-muted d-block mb-1">Plataforma</label>
+                                <span class="badge bg-white text-dark border px-3 py-2 w-100 text-start fw-medium shadow-sm">
+                                    <i class="bi bi-server me-2 text-primary"></i>@Model.Plataforma?.Nombre
+                                </span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="text-uppercase small fw-bold text-muted d-block mb-1">Nivel de Acceso</label>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 w-100 text-start fw-medium">
+                                    <i class="bi bi-key me-2"></i>@Model.TipoAcceso
+                                </span>
+                            </div>
+
+                            <hr class="text-muted opacity-25 my-4">
+
+                            <div class="mb-0">
+                                <label class="text-uppercase small fw-bold text-muted d-block mb-2">Justificación del Usuario</label>
+                                <div class="p-3 bg-light rounded-3 border small shadow-inner" style="max-height: 250px; overflow-y: auto; line-height: 1.6;">
+                                    <i class="bi bi-chat-left-quote text-muted me-2"></i>@Model.Justificacion
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* --- PANEL DERECHO: FORMULARIO DE DECISIÓN --- *@
+                <div class="col-md-7">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold mb-4 d-flex align-items-center">
+                                <i class="bi bi-shield-check me-2 text-success"></i>Dictamen Técnico
+                            </h5>
+
+                            <form asp-action="Resolver" asp-route-id="@Model.Id" method="post" id="resolverForm">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@Model.Id" />
+
+                                @* Observaciones Generales *@
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold small text-muted text-uppercase">Observaciones de Seguridad</label>
+                                    <textarea name="observacionesSeguridad" id="obsSeg" class="form-control shadow-sm border-light-subtle" rows="4"
+                                              placeholder="Escriba los hallazgos técnicos o validaciones realizadas..."></textarea>
+                                </div>
+
+                                @* Motivo de Rechazo *@
+                                <div class="mb-4" id="seccionRechazo">
+                                    <label class="form-label fw-bold small text-danger text-uppercase d-flex align-items-center">
+                                        <i class="bi bi-exclamation-circle-fill me-2"></i>Motivo de Rechazo
+                                    </label>
+                                    <textarea name="motivoRechazo" id="motivoRechazo" class="form-control border-danger border-opacity-25 shadow-sm"
+                                              rows="3" placeholder="Obligatorio solo si se rechaza la solicitud..."></textarea>
+                                    <div class="form-text text-danger d-none animate__animated animate__headShake" id="errorRechazo">
+                                        <i class="bi bi-x-circle me-1"></i>Debe explicar el motivo del rechazo para informar al usuario.
+                                    </div>
+                                </div>
+
+                                @* Botones de Acción *@
+                                <div class="d-flex flex-column flex-sm-row gap-3 pt-3 border-top mt-4">
+                                    <button type="submit" name="decision" value="Aprobar" id="btnAprobar" class="btn btn-success px-4 py-3 shadow flex-fill fw-bold text-uppercase">
+                                        <i class="bi bi-check-circle-fill me-2"></i>Aprobar Acceso
+                                    </button>
+                                    <button type="submit" name="decision" value="Rechazar" id="btnRechazar" class="btn btn-danger px-4 py-3 shadow flex-fill fw-bold text-uppercase">
+                                        <i class="bi bi-x-circle-fill me-2"></i>Rechazar
+                                    </button>
+                                </div>
+
+                                <div class="text-center mt-4">
+                                    <a asp-action="Index" class="btn btn-link text-muted text-decoration-none small">
+                                        <i class="bi bi-arrow-left-short fs-5"></i> Cancelar y volver al listado
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
-
-    <form asp-action="Resolver" asp-route-id="@Model.Id" method="post">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="id" value="@Model.Id" />
-
-        <div class="mb-4">
-            <label class="form-label fw-bold">Observaciones de Seguridad</label>
-            <textarea name="observacionesSeguridad" class="form-control" rows="3" placeholder="Observaciones del análisis de seguridad..."></textarea>
-        </div>
-
-        <div class="mb-4">
-            <label class="form-label fw-bold text-danger">Motivo de Rechazo (obligatorio si rechaza)</label>
-            <textarea name="motivoRechazo" class="form-control" rows="3" placeholder="Indique por qué se rechaza..."></textarea>
-        </div>
-
-        <div class="d-flex gap-2">
-            <button type="submit" name="decision" value="Aprobar" class="btn btn-success px-4">
-                Aprobar
-            </button>
-            <button type="submit" name="decision" value="Rechazar" class="btn btn-danger px-4">
-                Rechazar
-            </button>
-            <a asp-action="Index" class="btn btn-secondary px-4">
-                Cancelar
-            </a>
-        </div>
-    </form>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            const $motivoRechazo = $('#motivoRechazo');
+            const $errorRechazo = $('#errorRechazo');
+
+            // --- ESTILOS DINÁMICOS EN FOCUS ---
+            $('#obsSeg').on('focus', function() {
+                $(this).addClass('border-primary-subtle').css('background-color', '#f8faff');
+            }).on('blur', function() { $(this).css('background-color', '#fff'); });
+
+            $motivoRechazo.on('focus', function() {
+                $(this).addClass('border-danger-subtle').css('background-color', '#fff8f8');
+            }).on('blur', function() { $(this).css('background-color', '#fff'); });
+
+            // --- LÓGICA DE ENVÍO ---
+            $('#resolverForm').on('submit', function (e) {
+                // Obtenemos qué botón disparó el submit
+                const decision = document.activeElement.value;
+                const motivo = $motivoRechazo.val().trim();
+
+                // Validación de campo obligatorio para rechazo
+                if (decision === "Rechazar" && motivo === "") {
+                    e.preventDefault();
+                    $motivoRechazo.addClass('is-invalid').focus();
+                    $errorRechazo.removeClass('d-none');
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'error',
+                        title: 'Falta motivo de rechazo',
+                        showConfirmButton: false,
+                        timer: 4000,
+                        timerProgressBar: true
+                    });
+                    return false;
+                }
+
+                // Confirmación con SweetAlert
+                e.preventDefault();
+                const esAprobacion = decision === "Aprobar";
+
+                Swal.fire({
+                    title: esAprobacion ? '¿Confirmar Aprobación?' : '¿Confirmar Rechazo?',
+                    html: `Está a punto de emitir un dictamen para la solicitud <b>${'@Model.Codigo'}</b>.`,
+                    icon: esAprobacion ? 'success' : 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: esAprobacion ? '#198754' : '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: esAprobacion ? 'Sí, Aprobar' : 'Sí, Rechazar',
+                    cancelButtonText: 'Revisar',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Mostrar estado de carga
+                        Swal.fire({
+                            title: 'Procesando dictamen...',
+                            allowOutsideClick: false,
+                            didOpen: () => { Swal.showLoading(); }
+                        });
+
+                        // Inyectar el valor del botón manualmente para el Controller
+                        $('<input>').attr({
+                            type: 'hidden',
+                            name: 'decision',
+                            value: decision
+                        }).appendTo('#resolverForm');
+
+                        this.submit();
+                    }
+                });
+            });
+
+            // Limpiar estados de error al escribir
+            $motivoRechazo.on('input', function() {
+                $(this).removeClass('is-invalid');
+                $errorRechazo.addClass('d-none');
+            });
+        });
+    </script>
+
+    <style>
+        body {
+            background-color: #f4f7f6;
+        }
+
+        .shadow-inner {
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .card {
+            border-radius: 12px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            transition: all 0.2s;
+            padding: 0.75rem;
+        }
+
+        .btn {
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+            .btn:hover {
+                transform: translateY(-1px);
+            }
+
+        .badge {
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
+        }
+
+        /* Animación suave al cargar */
+        .container {
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @@keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Estilo para los label */
+        .form-label {
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+}
