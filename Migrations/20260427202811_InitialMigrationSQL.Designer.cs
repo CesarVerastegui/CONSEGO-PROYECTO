@@ -4,6 +4,7 @@ using CONSEGO.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CONSEGO.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260427202811_InitialMigrationSQL")]
+    partial class InitialMigrationSQL
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -126,6 +129,38 @@ namespace CONSEGO.Migrations
                         },
                         new
                         {
+                            Id = 4,
+                            Activa = true,
+                            Criticidad = "Media",
+                            Nombre = "Microsoft 365",
+                            Tipo = "Cloud"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Activa = true,
+                            Criticidad = "Media",
+                            Nombre = "Cloudflare",
+                            Tipo = "Cloud"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Activa = true,
+                            Criticidad = "Baja",
+                            Nombre = "WordPress",
+                            Tipo = "App"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Activa = true,
+                            Criticidad = "Media",
+                            Nombre = "GoDaddy",
+                            Tipo = "Cloud"
+                        },
+                        new
+                        {
                             Id = 8,
                             Activa = true,
                             Criticidad = "Alta",
@@ -159,32 +194,26 @@ namespace CONSEGO.Migrations
                         new
                         {
                             Id = 1,
-                            Descripcion = "Acceso total",
+                            Descripcion = "Administrador del sistema con acceso total",
                             Nombre = "Admin"
                         },
                         new
                         {
                             Id = 2,
-                            Descripcion = "Revisa solicitudes",
+                            Descripcion = "Analista de seguridad que revisa solicitudes",
                             Nombre = "AnalistaSeguridad"
                         },
                         new
                         {
                             Id = 3,
-                            Descripcion = "Crea solicitudes",
+                            Descripcion = "Usuario que crea solicitudes de acceso",
                             Nombre = "Solicitante"
                         },
                         new
                         {
                             Id = 4,
-                            Descripcion = "Implementa accesos",
+                            Descripcion = "Equipo de infraestructura que implementa accesos aprobados",
                             Nombre = "Infra"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Descripcion = "Solo lectura y revisión de logs",
-                            Nombre = "Auditor"
                         });
                 });
 
@@ -309,7 +338,7 @@ namespace CONSEGO.Migrations
                             Activo = true,
                             Email = "analista@idmtechnology.pe",
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Nombre = "Ana García",
+                            Nombre = "Ana García (Analista)",
                             PasswordHash = "WIxV884rhWmxU8WrvxP590MIuIogAXzGmbg1zJMZXRY=",
                             RolId = 2
                         },
@@ -319,19 +348,9 @@ namespace CONSEGO.Migrations
                             Activo = true,
                             Email = "solicitante@idmtechnology.pe",
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Nombre = "Juan Asto",
+                            Nombre = "Carlos López (Solicitante)",
                             PasswordHash = "WIxV884rhWmxU8WrvxP590MIuIogAXzGmbg1zJMZXRY=",
                             RolId = 3
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Activo = true,
-                            Email = "auditor@idmtechnology.pe",
-                            FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Nombre = "Pedro Castro",
-                            PasswordHash = "WIxV884rhWmxU8WrvxP590MIuIogAXzGmbg1zJMZXRY=",
-                            RolId = 5
                         });
                 });
 

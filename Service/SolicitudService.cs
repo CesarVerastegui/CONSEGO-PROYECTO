@@ -51,7 +51,6 @@ namespace CONSEGO.Service
         {
             var solicitud = await _repo.GetByIdAsync(id);
 
-            // Regla de negocio: Solo se toma si está en 'Registrado'
             if (solicitud == null || solicitud.Estado != EstadoSolicitud.Registrado)
                 return false;
 
@@ -90,7 +89,6 @@ namespace CONSEGO.Service
         {
             var solicitud = await _repo.GetByIdAsync(id);
 
-            // Regla: Solo se implementa si fue aprobada previamente
             if (solicitud == null || solicitud.Estado != EstadoSolicitud.Aprobado)
                 return false;
 
@@ -111,7 +109,7 @@ namespace CONSEGO.Service
             if (rol == "Infra")
                 query = query.Where(s => s.Estado == EstadoSolicitud.Aprobado || s.Estado == EstadoSolicitud.Implementado);
 
-            // Aplicación de filtros manuales
+            // Aplicación de filtros
             if (filtro.Estado.HasValue)
                 query = query.Where(s => s.Estado == filtro.Estado.Value);
 
@@ -137,7 +135,6 @@ namespace CONSEGO.Service
 
         public async Task<byte[]> ExportarExcelAsync(SolicitudFiltroViewModel filtro, int userId, string rol)
         {
-            // Reutilizamos la lógica de filtrado pero sin paginación para el reporte
             var query = _repo.GetQueryable();
 
             if (rol == "Solicitante") query = query.Where(s => s.UsuarioSolicitanteId == userId);

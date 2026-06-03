@@ -5,59 +5,153 @@
     ViewData["Title"] = "Nueva Solicitud de Acceso";
 }
 
-<h3>Nueva Solicitud de Acceso</h3>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-7">
+            <div class="card shadow-sm border-0">
+                @* Encabezado con degradado suave o estilo sólido *@
+                <div class="card-header bg-white py-3 border-bottom-0">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="bi bi-shield-lock-fill text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="card-title mb-0 fw-bold text-dark">Nueva Solicitud de Acceso</h4>
+                            <p class="text-muted small mb-0">Gestione sus permisos de forma segura y centralizada.</p>
+                        </div>
+                    </div>
+                </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <form id="createForm" asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="card-body p-4 pt-2">
+                    <form id="createForm" asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
 
-            <div class="mb-3">
-                <label asp-for="PlataformaId" class="form-label">Plataforma</label>
-                <select asp-for="PlataformaId" asp-items="@ViewBag.Plataformas" class="form-select">
-                    <option value="">-- Seleccione Plataforma --</option>
-                </select>
-                <span asp-validation-for="PlataformaId" class="text-danger"></span>
+                        <div class="row g-4">
+                            @* Selección de Plataforma *@
+                            <div class="col-md-6">
+                                <label asp-for="PlataformaId" class="form-label fw-bold small text-uppercase text-muted">Plataforma Destino</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-server"></i></span>
+                                    <select asp-for="PlataformaId" asp-items="@ViewBag.Plataformas" class="form-select border-start-0 ps-0">
+                                        <option value="">-- Seleccione --</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="PlataformaId" class="text-danger small"></span>
+                            </div>
+
+                            @* Selección de Tipo de Acceso *@
+                            <div class="col-md-6">
+                                <label asp-for="TipoAcceso" class="form-label fw-bold small text-uppercase text-muted">Nivel de Acceso</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-key"></i></span>
+                                    <select asp-for="TipoAcceso" asp-items="Html.GetEnumSelectList<TipoAcceso>()" class="form-select border-start-0 ps-0">
+                                        <option value="">-- Seleccione --</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="TipoAcceso" class="text-danger small"></span>
+                            </div>
+
+                            @* Justificación *@
+                            <div class="col-12">
+                                <label asp-for="Justificacion" class="form-label fw-bold small text-uppercase text-muted">Motivo de la Solicitud</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 align-items-start pt-2"><i class="bi bi-chat-left-dots"></i></span>
+                                    <textarea asp-for="Justificacion" class="form-control border-start-0 ps-0" rows="4"
+                                              placeholder="Describa brevemente el proyecto o tarea que requiere este acceso..."></textarea>
+                                </div>
+                                <div class="form-text mt-1 text-end small">Mínimo 10 caracteres.</div>
+                                <span asp-validation-for="Justificacion" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <hr class="my-4 text-muted opacity-25">
+
+                        @* Acciones *@
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a asp-action="Index" class="btn btn-link text-decoration-none text-muted p-0">
+                                <i class="bi bi-arrow-left me-1"></i>Volver al listado
+                            </a>
+                            <div class="d-flex gap-2">
+                                <a asp-action="Index" class="btn btn-light px-4 border">Cancelar</a>
+                                <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                    <i class="bi bi-send me-2"></i>Enviar Solicitud
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="TipoAcceso" class="form-label">Tipo de Acceso</label>
-                <select asp-for="TipoAcceso" asp-items="Html.GetEnumSelectList<TipoAcceso>()" class="form-select">
-                    <option value="">-- Seleccione --</option>
-                </select>
-                <span asp-validation-for="TipoAcceso" class="text-danger"></span>
+            @* Nota de Seguridad *@
+            <div class="alert alert-info border-0 shadow-sm mt-4 d-flex align-items-center" role="alert" style="border-left: 4px solid #0dcaf0 !important;">
+                <i class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
+                <div class="small">
+                    <strong>Importante:</strong> Todas las solicitudes son auditadas y requieren la aprobación del administrador de la plataforma seleccionada.
+                </div>
             </div>
-
-            <div class="mb-3">
-                <label asp-for="Justificacion" class="form-label">Justificación</label>
-                <textarea asp-for="Justificacion" class="form-control" rows="4" placeholder="Explique por qué necesita este acceso..."></textarea>
-                <span asp-validation-for="Justificacion" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Enviar Solicitud</button>
-            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-        </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
+    @* Cargamos scripts de validación directamente *@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.13/jquery.validate.unobtrusive.min.js"></script>
+
     <script>
         document.getElementById('createForm')?.addEventListener('submit', function(e) {
             e.preventDefault();
-            // Usando validación de jQuery para que funcione con los spans de error
+
+            // Validación de jQuery Unobtrusive
             if (!$(this).valid()) return;
 
             Swal.fire({
-                title: '¿Enviar solicitud?',
-                text: 'La solicitud será registrada y enviada al área de seguridad.',
+                title: '¿Confirmar envío?',
+                text: 'La solicitud será registrada y entrará en proceso de revisión.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#0d6efd',
-                confirmButtonText: 'Sí, enviar',
-                cancelButtonText: 'Cancelar'
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-send me-1"></i>Sí, enviar solicitud',
+                cancelButtonText: 'Revisar datos',
+                reverseButtons: true
             }).then(result => {
-                if (result.isConfirmed) this.submit();
+                if (result.isConfirmed) {
+                    // Mostrar carga breve para feedback visual
+                    Swal.fire({
+                        title: 'Procesando...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+                    this.submit();
+                }
             });
         });
     </script>
+
+    <style>
+        .form-control:focus, .form-select:focus {
+            box-shadow: none;
+            border-color: #0d6efd;
+            background-color: #fff;
+        }
+
+        .input-group-text {
+            color: #6c757d;
+            border-color: #dee2e6;
+        }
+
+        .card {
+            border-radius: 12px;
+        }
+
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .bg-primary.bg-opacity-10 {
+            background-color: rgba(13, 110, 253, 0.1) !important;
+        }
+    </style>
 }
