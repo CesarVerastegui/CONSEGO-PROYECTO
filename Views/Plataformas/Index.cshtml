@@ -4,57 +4,173 @@
     ViewData["Title"] = "Plataformas";
 }
 
-<h3>Plataformas</h3>
-<a asp-action="Create" class="btn btn-primary mb-3">Nueva Plataforma</a>
+<style>
+    /* Mantenemos tus etiquetas minimalistas pero ajustamos la cabecera para que sea igual a Roles */
+    .badge-soft {
+        display: inline-block;
+        padding: 0.35em 0.8em;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 50rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
 
-<table class="table table-striped table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Tipo</th>
-            <th>Criticidad</th>
-            <th>Activa</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var p in Model)
-        {
-            <tr>
-                <td>@p.Id</td>
-                <td>@p.Nombre</td>
-                <td><span class="badge bg-info">@p.Tipo</span></td>
-                <td>
-                    @{
-                        var badgeClass = p.Criticidad switch
-                        {
-                            Criticidad.Alta => "bg-danger",
-                            Criticidad.Media => "bg-warning text-dark",
-                            _ => "bg-success"
-                        };
-                    }
-                    <span class="badge @badgeClass">@p.Criticidad</span>
-                </td>
-                <td>
-                    @if (p.Activa)
+    .badge-soft-success {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-soft-danger {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-soft-warning {
+        background-color: #fef9c3;
+        color: #854d0e;
+    }
+
+    .badge-soft-info {
+        background-color: #e0f2fe;
+        color: #075985;
+    }
+
+    .badge-soft-secondary {
+        background-color: #f3f4f6;
+        color: #374151;
+    }
+
+    /* Forzamos que la tabla use el estilo exacto de Roles */
+    #tablaPlataformas thead.table-light th {
+        background-color: #f8f9fa !important; /* El gris de Bootstrap light */
+        color: #212529 !important; /* El color de texto estándar */
+        border-bottom: 1px solid #dee2e6;
+        text-transform: none; /* Quitamos las mayúsculas para igualar a Roles */
+    }
+</style>
+
+<div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">
+            <i class="bi bi-cloud me-2"></i>Gestión de Plataformas
+        </h3>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Nueva Plataforma
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="tablaPlataformas" class="table table-striped table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Criticidad</th>
+                        <th>Activa</th>
+                        <th class="text-center" style="width: 100px">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model)
                     {
-                        <span class="badge bg-success">Sí</span>
+                        <tr>
+                            <td>@p.Id</td>
+                            <td>@p.Nombre</td>
+                            <td>
+                                <span class="badge-soft badge-soft-info">
+                                    <i class="bi bi-layers me-1"></i>@p.Tipo
+                                </span>
+                            </td>
+                            <td>
+                                @{
+                                    var badgeClass = p.Criticidad switch
+                                    {
+                                        Criticidad.Alta => "badge-soft-danger",
+                                        Criticidad.Media => "badge-soft-warning",
+                                        _ => "badge-soft-success"
+                                    };
+                                }
+                                <span class="@badgeClass">@p.Criticidad</span>
+                            </td>
+                            <td>
+                                @if (p.Activa)
+                                {
+                                    <span class="badge-soft badge-soft-success">Sí</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-soft badge-soft-secondary">No</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="confirmDelete(@p.Id, '@p.Nombre')">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </td>
+                        </tr>
                     }
-                    else
-                    {
-                        <span class="badge bg-danger">No</span>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Usamos exactamente la misma configuración de Roles
+            $('#tablaPlataformas').DataTable({
+                language: {
+                    "sProcessing":     "Procesando...",
+                    "sLengthMenu":     "Mostrar _MENU_ registros",
+                    "sZeroRecords":    "No se encontraron resultados",
+                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                    "sSearch":         "Buscar:",
+                    "oPaginate": {
+                        "sFirst":    "Primero",
+                        "sLast":     "Último",
+                        "sNext":     "Siguiente",
+                        "sPrevious": "Anterior"
                     }
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary" title="Editar">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <a asp-action="Delete" asp-route-id="@p.Id" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                        <i class="bi bi-trash3"></i>
-                    </a>
-                </td>
-            </tr>
+                },
+                responsive: true,
+                order: [[0, 'desc']],
+                pageLength: 10,
+                lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
+                columnDefs: [
+                    { targets: [0], width: "80px" },
+                    { targets: [5], orderable: false, searchable: false }
+                ],
+                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                     '<"row"<"col-sm-12"tr>>' +
+                     '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>'
+            });
+        });
+
+        function confirmDelete(id, nombre) {
+            Swal.fire({
+                title: '¿Eliminar plataforma?',
+                html: `¿Estás seguro de que deseas eliminar la plataforma <strong>${nombre}</strong>?<br><span class="text-danger">Esta acción no se puede deshacer.</span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-trash3 me-1"></i>Sí, eliminar',
+                cancelButtonText: '<i class="bi bi-x-circle me-1"></i>Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '@Url.Action("Delete", "Plataformas")/' + id;
+                }
+            });
         }
-    </tbody>
-</table>
+    </script>
+}

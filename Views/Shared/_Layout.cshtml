@@ -6,14 +6,18 @@
     <title>@ViewData["Title"] - CONSEGO</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" />
+
     <style>
         * {
             font-family: 'Inter', sans-serif;
         }
 
         body {
-            background-color: #f5f7fb;
+            background: linear-gradient(135deg, #e8f0f5 0%, #d9e2ec 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -23,10 +27,16 @@
             flex: 1;
         }
 
+        .navbar {
+            background: #2c3e50 !important;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
         .navbar-brand {
             font-weight: 700;
             font-size: 1.4rem;
             letter-spacing: -0.5px;
+            color: white !important;
         }
 
             .navbar-brand i {
@@ -37,10 +47,12 @@
             font-weight: 500;
             border-radius: 8px;
             transition: all 0.2s;
+            color: rgba(255,255,255,0.85) !important;
         }
 
             .nav-link:hover {
                 background-color: rgba(255,255,255,0.1);
+                color: white !important;
             }
 
         .card {
@@ -48,6 +60,7 @@
             border-radius: 1rem;
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
             transition: transform 0.2s, box-shadow 0.2s;
+            background: white;
         }
 
             .card:hover {
@@ -76,6 +89,101 @@
                 border-bottom: 2px solid #ced4da;
             }
 
+        /* --- AJUSTES PARA ELIMINAR SCROLL HORIZONTAL --- */
+        .dataTables_wrapper {
+            overflow-x: hidden;
+        }
+
+            .dataTables_wrapper .row {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            .dataTables_wrapper .col-sm-12 {
+                padding: 0 !important;
+            }
+
+        table.dataTable {
+            width: 100% !important;
+            margin: 0 !important;
+        }
+
+        /* --- ESTILOS COMPONENTES DATATABLES (BUSCADOR Y PAGINACIÓN) --- */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            margin-bottom: 1.5rem;
+        }
+
+            /* Buscador: Sin sombras ni contornos azules */
+            .dataTables_wrapper .dataTables_filter input {
+                border-radius: 0.5rem;
+                border: 1px solid #dee2e6;
+                padding: 0.4rem 0.8rem;
+                margin-left: 0.5rem;
+                outline: none !important;
+                box-shadow: none !important;
+            }
+
+                .dataTables_wrapper .dataTables_filter input:focus {
+                    border-color: #3b82f6;
+                }
+
+        /* Paginación: Limpieza total de los bordes dobles y fondos extraños */
+        .dataTables_wrapper .dataTables_paginate {
+            padding-top: 1rem;
+        }
+
+            .dataTables_wrapper .dataTables_paginate .paginate_button {
+                padding: 0 !important;
+                margin: 0 2px !important;
+                border: none !important;
+                background: transparent !important;
+            }
+
+                /* Estilo para los botones de texto y números */
+                .dataTables_wrapper .dataTables_paginate .paginate_button a {
+                    display: inline-block;
+                    padding: 0.4rem 0.9rem;
+                    border-radius: 0.5rem !important;
+                    border: 1px solid #dee2e6 !important;
+                    background-color: #f8f9fa !important;
+                    color: #495057 !important;
+                    text-decoration: none !important;
+                    transition: all 0.2s;
+                    box-shadow: none !important;
+                }
+
+                /* Hover para Anterior, Siguiente y números inactivos */
+                .dataTables_wrapper .dataTables_paginate .paginate_button:hover a {
+                    background-color: #e9ecef !important;
+                    color: #212529 !important;
+                    border-color: #ced4da !important;
+                }
+
+                /* Página Actual: El número azul */
+                .dataTables_wrapper .dataTables_paginate .paginate_button.current a {
+                    background-color: #3b82f6 !important;
+                    border-color: #3b82f6 !important;
+                    color: white !important;
+                }
+
+                /* Botones deshabilitados */
+                .dataTables_wrapper .dataTables_paginate .paginate_button.disabled a {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                    background-color: #f8f9fa !important;
+                }
+
+        /* --- OTROS DETALLES --- */
+        table.dataTable > tbody > tr.child ul.dtr-details {
+            width: 100%;
+        }
+
+        table.dataTable > tbody > tr.child span.dtr-title {
+            min-width: 100px;
+            font-weight: 600;
+        }
+
         .badge {
             padding: 0.35rem 0.75rem;
             border-radius: 2rem;
@@ -85,11 +193,20 @@
         footer {
             background-color: white;
             border-top: 1px solid #dee2e6;
+            color: #6c757d;
         }
 
         .role-badge {
             font-size: 0.7rem;
             padding: 0.25rem 0.6rem;
+        }
+
+        .dataTables_processing {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            color: #3b82f6;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -144,10 +261,10 @@
                             <li>
                                 <span class="dropdown-item-text">
                                     <span class="badge
-                                            @(User.IsInRole("Admin") ? "bg-danger" :
-                                                                                                                                  User.IsInRole("AnalistaSeguridad") ? "bg-warning text-dark" :
-                                                                                                                                  User.IsInRole("Infra") ? "bg-info text-dark" : "bg-secondary")
-                                            w-100 py-2">
+                                                @(User.IsInRole("Admin") ? "bg-danger" :
+                                                                                              User.IsInRole("AnalistaSeguridad") ? "bg-warning text-dark" :
+                                                                                              User.IsInRole("Infra") ? "bg-info text-dark" : "bg-secondary")
+                                                w-100 py-2">
                                         <i class="bi bi-shield-check me-1"></i>
                                         @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
                                     </span>
@@ -199,48 +316,50 @@
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
 
     <script>
-        // Capturar mensajes de TempData y mostrar con SweetAlert
         @if (TempData["Success"] != null)
         {
-                <text>
-                Swal.fire({
-                    title: '¡Éxito!',
-                    text: '@Html.Raw(TempData["Success"])',
-                    icon: 'success',
-                    confirmButtonColor: '#0d6efd',
-                    timer: 3000,
-                    showConfirmButton: true
-                });
-                </text>
+                    <text>
+                    Swal.fire({
+                        title: '¡Éxito!',
+                        text: '@Html.Raw(TempData["Success"])',
+                        icon: 'success',
+                        confirmButtonColor: '#3b82f6',
+                        timer: 3000,
+                        showConfirmButton: true
+                    });
+                    </text>
         }
 
         @if (TempData["Error"] != null)
         {
-                <text>
-                Swal.fire({
-                    title: '¡Error!',
-                    text: '@Html.Raw(TempData["Error"])',
-                    icon: 'error',
-                    confirmButtonColor: '#dc3545'
-                });
-                </text>
+                    <text>
+                    Swal.fire({
+                        title: '¡Error!',
+                        text: '@Html.Raw(TempData["Error"])',
+                        icon: 'error',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    </text>
         }
 
         @if (TempData["Info"] != null)
         {
-                <text>
-                Swal.fire({
-                    title: 'Información',
-                    text: '@Html.Raw(TempData["Info"])',
-                    icon: 'info',
-                    confirmButtonColor: '#0dcaf0'
-                });
-                </text>
+                    <text>
+                    Swal.fire({
+                        title: 'Información',
+                        text: '@Html.Raw(TempData["Info"])',
+                        icon: 'info',
+                        confirmButtonColor: '#0dcaf0'
+                    });
+                    </text>
         }
 
-        // Confirmar cierre de sesión
         document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
             e.preventDefault();
             Swal.fire({

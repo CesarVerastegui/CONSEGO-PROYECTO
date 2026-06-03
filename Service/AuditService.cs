@@ -1,15 +1,12 @@
 ﻿using CONSEGO.Models;
-using DocumentFormat.OpenXml.Vml.Office;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Text.Json;
-using static System.Net.WebRequestMethods;
 
 namespace CONSEGO.Service
 {
     public class AuditService : IAuditService
     {
-
         private readonly IHttpContextAccessor _http;
 
         public AuditService(IHttpContextAccessor http)
@@ -19,15 +16,18 @@ namespace CONSEGO.Service
 
         public void AddAuditLogs(ChangeTracker changeTracker)
         {
+            // CRÍTICO: Usamos .ToList() para que la enumeración no falle 
+            // al agregar nuevos registros (AuditLog) al contexto.
             var entries = changeTracker.Entries()
                 .Where(e =>
                     e.State == EntityState.Added ||
                     e.State == EntityState.Modified ||
-                    e.State == EntityState.Deleted);
+                    e.State == EntityState.Deleted)
+                .ToList();
 
             foreach (var entry in entries)
             {
-                // Evitar auditar la misma tabla de auditoría
+                // Evitar auditar la misma tabla de auditoría (por seguridad extra)
                 if (entry.Entity is AuditLog)
                     continue;
 
@@ -37,50 +37,56 @@ namespace CONSEGO.Service
                     Action = entry.State.ToString(),
                     Entity = entry.Entity.GetType().Name,
                     EntityId = GetPrimaryKey(entry),
-                    Username = _http.HttpContext?.User?.Identity?.Name,
+                    Username = _http.HttpContext?.User?.Identity?.Name ?? "System",
                     Changes = GetChanges(entry)
                 };
 
-    changeTracker.Context.Add(audit);
+                // Ahora podemos agregar al contexto porque estamos iterando sobre una copia (.ToList)
+                changeTracker.Context.Add(audit);
             }
         }
 
         private string GetPrimaryKey(EntityEntry entry)
-{
-    var key = entry.Properties
-        .FirstOrDefault(p => p.Metadata.IsPrimaryKey());
-
-    return key?.CurrentValue?.ToString() ?? "";
-}
-
-private string GetChanges(EntityEntry entry)
-{
-    var changes = new Dictionary<string, object?>();
-
-    foreach (var prop in entry.Properties)
-    {
-        if (prop.Metadata.IsPrimaryKey())
-            continue;
-
-        if (entry.State == EntityState.Added)
-            changes[prop.Metadata.Name] = prop.CurrentValue;
-
-        if (entry.State == EntityState.Deleted)
-            changes[prop.Metadata.Name] = prop.OriginalValue;
-
-        if (entry.State == EntityState.Modified &&
-            !Equals(prop.OriginalValue, prop.CurrentValue))
         {
-            changes[prop.Metadata.Name] = new
-            {
-                Old = prop.OriginalValue,
-                New = prop.CurrentValue
-            };
+            var key = entry.Properties
+                .FirstOrDefault(p => p.Metadata.IsPrimaryKey());
+
+            return key?.CurrentValue?.ToString() ?? "N/A";
         }
-    }
 
-    return JsonSerializer.Serialize(changes);
-}
+        private string GetChanges(EntityEntry entry)
+        {
+            var changes = new Dictionary<string, object?>();
 
+            foreach (var prop in entry.Properties)
+            {
+                // No guardamos la PK en el JSON de cambios para no redundar
+                if (prop.Metadata.IsPrimaryKey())
+                    continue;
+
+                if (entry.State == EntityState.Added)
+                {
+                    changes[prop.Metadata.Name] = prop.CurrentValue;
+                }
+                else if (entry.State == EntityState.Deleted)
+                {
+                    changes[prop.Metadata.Name] = prop.OriginalValue;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    // Solo guardamos si el valor realmente cambió
+                    if (!Equals(prop.OriginalValue, prop.CurrentValue))
+                    {
+                        changes[prop.Metadata.Name] = new
+                        {
+                            Old = prop.OriginalValue,
+                            New = prop.CurrentValue
+                        };
+                    }
+                }
+            }
+
+            return JsonSerializer.Serialize(changes);
+        }
     }
 }
