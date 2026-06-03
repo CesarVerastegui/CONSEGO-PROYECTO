@@ -11,7 +11,6 @@ namespace CONSEGO.Data
     {
         private readonly IAuditService _auditService;
 
-        // UN SOLO CONSTRUCTOR: Recibe opciones y el servicio de auditoría
         public AppDbContext(
             DbContextOptions<AppDbContext> options,
             IAuditService auditService)
@@ -26,7 +25,6 @@ namespace CONSEGO.Data
         public DbSet<SolicitudAcceso> SolicitudesAcceso { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
 
-        // Sobrescribir SaveChanges para automatizar la auditoría
         public override int SaveChanges()
         {
             _auditService.AddAuditLogs(ChangeTracker);
@@ -43,12 +41,10 @@ namespace CONSEGO.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Índices Únicos
             modelBuilder.Entity<Usuario>().HasIndex(u => u.Email).IsUnique();
             modelBuilder.Entity<Plataforma>().HasIndex(p => p.Nombre).IsUnique();
             modelBuilder.Entity<SolicitudAcceso>().HasIndex(s => s.Codigo).IsUnique();
 
-            // Relaciones de SolicitudAcceso (Evitar borrado en cascada)
             modelBuilder.Entity<SolicitudAcceso>()
                 .HasOne(s => s.UsuarioSolicitante)
                 .WithMany(u => u.SolicitudesComoSolicitante)
@@ -67,15 +63,12 @@ namespace CONSEGO.Data
                 .HasForeignKey(s => s.PlataformaId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Conversión de Enums a String
             modelBuilder.Entity<SolicitudAcceso>().Property(s => s.Estado).HasConversion<string>();
             modelBuilder.Entity<SolicitudAcceso>().Property(s => s.TipoAcceso).HasConversion<string>();
             modelBuilder.Entity<Plataforma>().Property(p => p.Tipo).HasConversion<string>();
             modelBuilder.Entity<Plataforma>().Property(p => p.Criticidad).HasConversion<string>();
 
-            // ==================== SEED DATA ====================
-
-            // Roles (Añadido Auditor)
+            
             modelBuilder.Entity<Rol>().HasData(
                 new Rol { Id = 1, Nombre = "Admin", Descripcion = "Acceso total" },
                 new Rol { Id = 2, Nombre = "AnalistaSeguridad", Descripcion = "Revisa solicitudes" },

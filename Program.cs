@@ -25,7 +25,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
     });
 
-// Agregar controladores con el filtro global
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add<UsuarioActivoFilter>();

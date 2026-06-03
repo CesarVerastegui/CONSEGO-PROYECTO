@@ -79,7 +79,7 @@ namespace CONSEGO.Controllers
 
             if (error != null)
             {
-                // Devolvemos un error 400 para que el 'catch' o el 'if(!response.ok)' del JS lo capture
+                // Devolvemos un error 400
                 return BadRequest(new { message = error });
             }
 

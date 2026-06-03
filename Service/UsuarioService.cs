@@ -32,7 +32,7 @@ namespace CONSEGO.Service
             {
                 Nombre = dto.Nombre,
                 Email = dto.Email,
-                PasswordHash = AppDbContext.HashPassword(dto.Password), // Tu método estático
+                PasswordHash = AppDbContext.HashPassword(dto.Password),
                 RolId = dto.RolId,
                 Activo = true,
                 FechaCreacion = DateTime.Now

@@ -211,17 +211,24 @@
             });
 
             // Exportación (Usa los datos actuales de la tabla)
-            $('#btnExportarExcel').on('click', function() {
-                Swal.fire({
-                    title: 'Generando reporte...',
-                    didOpen: () => { Swal.showLoading(); },
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                // Aquí podrías llamar a tu endpoint de exportación
-                location.href = '@Url.Action("ExportarExcel", "Solicitudes")';
+                    $('#btnExportarExcel').on('click', function () {
+            Swal.fire({
+                title: 'Generando reporte...',
+                didOpen: () => { Swal.showLoading(); },
+                timer: 1500,
+                showConfirmButton: false
             });
+
+            // Construir query string con los filtros actuales
+            const params = new URLSearchParams({
+                Estado: $('#filtroEstado').val() ?? '',
+                PlataformaId: $('#filtroPlataforma').val() ?? '',
+                FechaDesde: $('#filtroFechaDesde').val() ?? '',
+                FechaHasta: $('#filtroFechaHasta').val() ?? ''
+            });
+
+            location.href = '@Url.Action("ExportarExcel", "Solicitudes")?' + params.toString();
+        });
         });
     </script>
 }
