@@ -3,48 +3,86 @@
     ViewData["Title"] = "Editar Usuario";
 }
 
-<h3>Editar Usuario</h3>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h4 class="card-title mb-0 text-primary">
+                        <i class="bi bi-person-gear me-2"></i>Editar Perfil de Usuario
+                    </h4>
+                    <p class="text-muted small mb-0">Actualice la información de acceso y privilegios.</p>
+                </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <form id="editUserForm" asp-action="Edit" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
+                <div class="card-body p-4">
+                    <form id="editUserForm" asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+                        <input type="hidden" asp-for="Id" />
 
-            <div class="mb-3">
-                <label asp-for="Nombre" class="form-label"></label>
-                <input asp-for="Nombre" class="form-control" />
-                <span asp-validation-for="Nombre" class="text-danger"></span>
+                        <div class="row">
+                            <div class="col-md-12 mb-4">
+                                <label asp-for="Nombre" class="form-label fw-bold small text-uppercase text-muted"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-person"></i></span>
+                                    <input asp-for="Nombre" class="form-control border-start-0 ps-0" />
+                                </div>
+                                <span asp-validation-for="Nombre" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Email" class="form-label fw-bold small text-uppercase text-muted"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope"></i></span>
+                                    <input asp-for="Email" class="form-control border-start-0 ps-0" />
+                                </div>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="RolId" class="form-label fw-bold small text-uppercase text-muted">Rol Asignado</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-shield-check"></i></span>
+                                    <select asp-for="RolId" asp-items="@ViewBag.Roles" class="form-select border-start-0 ps-0"></select>
+                                </div>
+                                <span asp-validation-for="RolId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-12 mb-4">
+                                <label asp-for="Password" class="form-label fw-bold small text-uppercase text-muted">Cambiar Contraseña</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-key"></i></span>
+                                    <input asp-for="Password" type="password" class="form-control border-start-0 ps-0" placeholder="Dejar vacío para mantener la actual" />
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <hr class="text-muted opacity-25">
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a asp-action="Index" class="btn btn-light px-4">
+                                <i class="bi bi-x-lg me-1"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                <i class="bi bi-person-check me-1"></i>Actualizar Usuario
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            <div class="mb-3">
-                <label asp-for="Email" class="form-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Password" class="form-label">Nueva Contraseña</label>
-                <input asp-for="Password" type="password" class="form-control" placeholder="Dejar vacío para no cambiar" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="RolId" class="form-label">Rol</label>
-                <select asp-for="RolId" asp-items="@ViewBag.Roles" class="form-select"></select>
-                <span asp-validation-for="RolId" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Actualizar</button>
-            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-        </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.13/jquery.validate.unobtrusive.min.js"></script>
+
     <script>
         document.getElementById('editUserForm')?.addEventListener('submit', function(e) {
             e.preventDefault();
+            if (!$(this).valid()) return;
+
             Swal.fire({
                 title: '¿Actualizar usuario?',
                 text: 'Los cambios se guardarán en el sistema.',
@@ -52,10 +90,31 @@
                 showCancelButton: true,
                 confirmButtonColor: '#0d6efd',
                 confirmButtonText: 'Sí, actualizar',
-                cancelButtonText: 'Cancelar'
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
             }).then(result => {
                 if (result.isConfirmed) this.submit();
             });
         });
     </script>
+
+    <style>
+        .form-control:focus, .form-select:focus {
+            box-shadow: none;
+            border-color: #dee2e6;
+        }
+
+        .input-group-text {
+            color: #6c757d;
+        }
+
+        .card {
+            border-radius: 15px;
+        }
+
+        .btn {
+            border-radius: 10px;
+            font-weight: 500;
+        }
+    </style>
 }

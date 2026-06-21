@@ -68,26 +68,23 @@ namespace CONSEGO.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Delete(int id)
-        {
-            var dto = await _rolService.ObtenerDetallesAsync(id);
-            if (dto == null) return NotFound();
-            return View(dto);
-        }
+        // Se eliminó el método GET Delete para evitar la vista intermedia
 
-        [HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("DeleteConfirmed")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Asumiendo que EliminarRolAsync devuelve una cadena con el error o null si fue exitoso
             var error = await _rolService.EliminarRolAsync(id);
+
             if (error != null)
             {
-                TempData["Error"] = error;
-                return RedirectToAction(nameof(Index));
+                // Devolvemos un error 400
+                return BadRequest(new { message = error });
             }
 
-            TempData["Success"] = "Rol eliminado exitosamente.";
-            return RedirectToAction(nameof(Index));
+            // Devolvemos un JSON de éxito
+            return Json(new { success = true, message = "Rol eliminado exitosamente." });
         }
     }
 }

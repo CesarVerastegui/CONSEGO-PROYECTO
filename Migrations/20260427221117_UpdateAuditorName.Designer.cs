@@ -4,6 +4,7 @@ using CONSEGO.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CONSEGO.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260427221117_UpdateAuditorName")]
+    partial class UpdateAuditorName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -312,16 +315,6 @@ namespace CONSEGO.Migrations
                             Nombre = "Ana García",
                             PasswordHash = "WIxV884rhWmxU8WrvxP590MIuIogAXzGmbg1zJMZXRY=",
                             RolId = 2
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Activo = true,
-                            Email = "solicitante@idmtechnology.pe",
-                            FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Nombre = "Juan Asto",
-                            PasswordHash = "WIxV884rhWmxU8WrvxP590MIuIogAXzGmbg1zJMZXRY=",
-                            RolId = 3
                         },
                         new
                         {

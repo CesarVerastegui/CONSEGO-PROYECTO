@@ -3,27 +3,79 @@
     ViewData["Title"] = "Crear Rol";
 }
 
-<h3>Crear Rol</h3>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h4 class="card-title mb-0 text-primary">
+                        <i class="bi bi-shield-plus me-2"></i>Nuevo Rol de Sistema
+                    </h4>
+                    <p class="text-muted small mb-0">Defina un nuevo perfil de acceso y sus responsabilidades.</p>
+                </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
 
-            <div class="mb-3">
-                <label asp-for="Nombre" class="form-label"></label>
-                <input asp-for="Nombre" class="form-control" />
-                <span asp-validation-for="Nombre" class="text-danger"></span>
+                        @* Nombre del Rol *@
+                        <div class="mb-4">
+                            <label asp-for="Nombre" class="form-label fw-bold small text-uppercase text-muted"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person-badge"></i></span>
+                                <input asp-for="Nombre" class="form-control border-start-0 ps-0" placeholder="Ej: Auditor Senior" />
+                            </div>
+                            <span asp-validation-for="Nombre" class="text-danger small"></span>
+                        </div>
+
+                        @* Descripción *@
+                        <div class="mb-4">
+                            <label asp-for="Descripcion" class="form-label fw-bold small text-uppercase text-muted"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 align-items-start pt-2"><i class="bi bi-card-text"></i></span>
+                                <textarea asp-for="Descripcion" class="form-control border-start-0 ps-0" rows="3" placeholder="Describa las facultades de este rol..."></textarea>
+                            </div>
+                            <span asp-validation-for="Descripcion" class="text-danger small"></span>
+                        </div>
+
+                        <hr class="text-muted opacity-25">
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a asp-action="Index" class="btn btn-light px-4">
+                                <i class="bi bi-x-lg me-1"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                <i class="bi bi-check-lg me-1"></i>Guardar Rol
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            <div class="mb-3">
-                <label asp-for="Descripcion" class="form-label"></label>
-                <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Descripcion" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Guardar</button>
-            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-        </form>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.13/jquery.validate.unobtrusive.min.js"></script>
+
+    <style>
+        .form-control:focus {
+            box-shadow: none;
+            border-color: #dee2e6;
+        }
+
+        .input-group-text {
+            color: #6c757d;
+        }
+
+        .card {
+            border-radius: 12px;
+        }
+
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+    </style>
+}

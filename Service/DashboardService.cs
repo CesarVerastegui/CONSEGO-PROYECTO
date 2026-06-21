@@ -22,7 +22,6 @@ namespace CONSEGO.Service
 
         public async Task<DashboardViewModel> GetDashboardStatsAsync()
         {
-            // El servicio coordina múltiples fuentes de datos
             return new DashboardViewModel
             {
                 TotalSolicitudes = await _solicitudRepo.CountTotalAsync(),

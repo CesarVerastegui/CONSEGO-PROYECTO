@@ -24,17 +24,13 @@ namespace CONSEGO.Controllers
             return View(plataformas);
         }
 
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PlataformaCreateDTO dto)
         {
-            if (!ModelState.IsValid)
-                return View(dto);
+            if (!ModelState.IsValid) return View(dto);
 
             var exito = await _service.CrearAsync(dto);
             if (!exito)
@@ -51,7 +47,6 @@ namespace CONSEGO.Controllers
         {
             var dto = await _service.ObtenerParaEditarAsync(id);
             if (dto == null) return NotFound();
-
             return View(dto);
         }
 
@@ -60,9 +55,7 @@ namespace CONSEGO.Controllers
         public async Task<IActionResult> Edit(int id, PlataformaUpdateDTO dto)
         {
             if (id != dto.Id) return NotFound();
-
-            if (!ModelState.IsValid)
-                return View(dto);
+            if (!ModelState.IsValid) return View(dto);
 
             var exito = await _service.ActualizarAsync(dto);
             if (!exito)
@@ -75,15 +68,9 @@ namespace CONSEGO.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Delete(int id)
-        {
-            var dto = await _service.ObtenerDetallesAsync(id);
-            if (dto == null) return NotFound();
+        // El método GET Delete ha sido eliminado para usar SweetAlert directamente.
 
-            return View(dto);
-        }
-
-        [HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("DeleteConfirmed")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -91,12 +78,11 @@ namespace CONSEGO.Controllers
 
             if (mensajeError != null)
             {
-                TempData["Error"] = mensajeError;
-                return RedirectToAction(nameof(Index));
+                // Si hay un error (ej. restricciones de integridad), enviamos un 400 con el mensaje
+                return BadRequest(new { message = mensajeError });
             }
 
-            TempData["Success"] = "Plataforma eliminada exitosamente.";
-            return RedirectToAction(nameof(Index));
+            return Json(new { success = true, message = "Plataforma eliminada correctamente." });
         }
     }
 }

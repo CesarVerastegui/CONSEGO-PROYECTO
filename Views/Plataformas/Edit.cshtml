@@ -4,58 +4,122 @@
     ViewData["Title"] = "Editar Plataforma";
 }
 
-<h3>Editar Plataforma</h3>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h4 class="card-title mb-0 text-primary">
+                        <i class="bi bi-pencil-square me-2"></i>Editar Plataforma
+                    </h4>
+                    <p class="text-muted small mb-0">Modifique los parámetros técnicos de la plataforma.</p>
+                </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <form id="editForm" asp-action="Edit" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
+                <div class="card-body p-4">
+                    <form id="editForm" asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+                        <input type="hidden" asp-for="Id" />
 
-            <div class="mb-3">
-                <label asp-for="Nombre" class="form-label"></label>
-                <input asp-for="Nombre" class="form-control" />
-                <span asp-validation-for="Nombre" class="text-danger"></span>
+                        <div class="mb-4">
+                            <label asp-for="Nombre" class="form-label fw-bold small text-uppercase text-muted"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-tag"></i></span>
+                                <input asp-for="Nombre" class="form-control border-start-0 ps-0" />
+                            </div>
+                            <span asp-validation-for="Nombre" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Tipo" class="form-label fw-bold small text-uppercase text-muted"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-layers"></i></span>
+                                    <select asp-for="Tipo" asp-items="Html.GetEnumSelectList<TipoPlataforma>()" class="form-select border-start-0 ps-0"></select>
+                                </div>
+                                <span asp-validation-for="Tipo" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Criticidad" class="form-label fw-bold small text-uppercase text-muted"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-exclamation-triangle"></i></span>
+                                    <select asp-for="Criticidad" asp-items="Html.GetEnumSelectList<Criticidad>()" class="form-select border-start-0 ps-0"></select>
+                                </div>
+                                <span asp-validation-for="Criticidad" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check form-switch p-0 ms-0">
+                                <label asp-for="Activa" class="form-check-label fw-bold small text-uppercase text-muted me-5"></label>
+                                <input asp-for="Activa" class="form-check-input ms-0" type="checkbox" role="switch">
+                            </div>
+                        </div>
+
+                        <hr class="text-muted opacity-25">
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a asp-action="Index" class="btn btn-light px-4">
+                                <i class="bi bi-x-lg me-1"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                <i class="bi bi-save me-1"></i>Actualizar
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            <div class="mb-3">
-                <label asp-for="Tipo" class="form-label"></label>
-                <select asp-for="Tipo" asp-items="Html.GetEnumSelectList<TipoPlataforma>()" class="form-select"></select>
-                <span asp-validation-for="Tipo" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Criticidad" class="form-label"></label>
-                <select asp-for="Criticidad" asp-items="Html.GetEnumSelectList<Criticidad>()" class="form-select"></select>
-                <span asp-validation-for="Criticidad" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3 form-check">
-                <input asp-for="Activa" class="form-check-input" />
-                <label asp-for="Activa" class="form-check-label"></label>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Actualizar</button>
-            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-        </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.13/jquery.validate.unobtrusive.min.js"></script>
+
     <script>
         document.getElementById('editForm')?.addEventListener('submit', function(e) {
             e.preventDefault();
+            if (!$(this).valid()) return; // Validar antes de mostrar el alert
+
             Swal.fire({
                 title: '¿Actualizar plataforma?',
                 text: 'Los cambios se guardarán en el sistema.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#0d6efd',
-                confirmButtonText: 'Sí, actualizar',
-                cancelButtonText: 'Cancelar'
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-check-lg me-1"></i>Sí, actualizar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
             }).then(result => {
                 if (result.isConfirmed) this.submit();
             });
         });
     </script>
+
+    <style>
+        .form-control:focus, .form-select:focus {
+            box-shadow: none;
+            border-color: #dee2e6;
+        }
+
+        .input-group-text {
+            color: #6c757d;
+        }
+
+        .card {
+            border-radius: 12px;
+        }
+
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .form-check-input:checked {
+            background-color: #198754;
+            border-color: #198754;
+        }
+    </style>
 }

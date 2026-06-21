@@ -45,13 +45,12 @@ namespace CONSEGO.Controllers
         // GET: Solicitudes/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            // Nota: Aquí podrías agregar un método GetByIdAsync en el Service que devuelva un ResponseDTO
-            // Por ahora, asumimos que el Service o Repositorio maneja la obtención
+            
             var solicitud = await _solicitudService.ObtenerDetalleAsync(id);
 
             if (solicitud == null) return NotFound();
 
-            // Validación de seguridad: El solicitante solo ve lo suyo
+            // Validación de seguridad
             if (GetRol() == "Solicitante" && solicitud.UsuarioSolicitanteId != GetUsuarioId())
                 return Forbid();
 
@@ -148,12 +147,11 @@ namespace CONSEGO.Controllers
         }
 
         // POST: Solicitudes/ExportarExcel
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ExportarExcel(SolicitudFiltroViewModel filtro)
+        [HttpGet]
+        public async Task<IActionResult> ExportarExcel()
         {
+            var filtro = new SolicitudFiltroViewModel();
             var content = await _solicitudService.ExportarExcelAsync(filtro, GetUsuarioId(), GetRol());
-
             return File(
                 content,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
