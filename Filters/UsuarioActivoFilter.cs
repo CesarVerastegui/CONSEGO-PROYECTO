@@ -17,7 +17,17 @@ namespace CONSEGO.Filters
 
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
+
+            var path = context.HttpContext.Request.Path.Value;
+
+            // ✅ IGNORAR TODAS LAS APIs
+            if (path.StartsWith("/api"))
+            {
+                return;
+            }
+
             var user = context.HttpContext.User;
+
             if (!user.Identity.IsAuthenticated)
                 return;
 
@@ -31,11 +41,13 @@ namespace CONSEGO.Filters
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
             var usuario = await dbContext.Usuarios.FindAsync(userId);
+
             if (usuario == null || !usuario.Activo)
             {
                 await context.HttpContext.SignOutAsync();
                 context.Result = new RedirectToActionResult("Login", "Auth", null);
             }
         }
+
     }
 }

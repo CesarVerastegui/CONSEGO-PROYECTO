@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CONSEGO.Controllers.Api
 {
-    [Route("api/auditoria   ")]
+    [Route("api/auditoria")]
     [ApiController]
     public class AuditoriaApiController : ControllerBase
     {
