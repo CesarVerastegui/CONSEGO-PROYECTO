@@ -29,6 +29,7 @@ builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add<UsuarioActivoFilter>();
 });
+builder.Services.AddControllers();
 
 builder.Services.AddScoped<UsuarioActivoFilter>();
 
@@ -68,13 +69,17 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+
+app.MapControllers();
+
 
 app.MapControllerRoute(
     name: "default",
